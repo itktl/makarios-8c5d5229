@@ -1,8 +1,8 @@
-name: live
+name: board
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/15 13-20 * * 1-5"   # every 15 minutes across the US session (UTC), as Portfolio Pulse
+    - cron: "*/15 13-20 * * 1-5"   # every 15 minutes across the US session (UTC), the Board page takes Portfolio Pulse's figures
     - cron: "15 21 * * 1-5"        # once after the close
 concurrency: { group: live, cancel-in-progress: false }
 permissions: { contents: write }
@@ -12,8 +12,8 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
-      - run: python3 live.py
+      - run: python3 build.py
       - run: |
           git config user.name "Makarios board" && git config user.email "board@users.noreply.github.com"
-          git add live.json
+          git add data.json
           git diff --cached --quiet || { git commit -qm "live $(date -u +%FT%TZ)" && git pull -q --rebase origin main && git push -q origin HEAD:main; }
