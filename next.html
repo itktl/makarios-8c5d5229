@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Makarios vs SPY</title>
+<link rel="icon" href="logo.png">
+<style>html,body{margin:0;background:#0b1c2a;color:#8fa0ae;font:14px system-ui,sans-serif}p{padding:24px}</style>
+</head>
+<body>
+<p id="msg">Loading…</p>
+<script>
+/* THE MAKARIOS BOARD PAGE IS PORTFOLIO PULSE ITSELF, RESTYLED AS IT OPENS (owner 2026-10-29: "make the Board page
+   intelligently adaptive so that drift or staleness is impossible").
+   Nothing of Pulse is copied here. Each time the page opens it loads Pulse's CURRENT page and Pulse's CURRENT figures from
+   the same site, so every Pulse feature and every Pulse number is the Board's the moment Pulse has it - the two cannot
+   drift. What changes on the way:
+     - the numbers: only Makarios and SPY (SPY from the close before Makarios's first session); no account balance;
+     - the look: the Makarios crest, navy and gold, the periods that suit a strategy begun on 16 May 2025;
+     - added: the holdings (holdings.json, from the Mac mini) and the disclaimer;
+     - the page's remembered settings are its own, never Pulse's (both pages live on itktl.github.io).
+   Every change is guarded: if Pulse's page is ever reshaped, the part that no longer fits is left as Pulse has it, never
+   breaks the page. STALENESS IS SAID ON THE PAGE, never hidden: Pulse's own warnings (prices stopped, strategies not
+   updated) come through as they are, and holdings older than the Makarios line's own holdings date are flagged. */
+const PULSE = "/pulse-b2dedc/";
+const FROM = "2025-04-30";                       // SPY from the close before Makarios's first session
+const MAKARIOS_CSS = `
+:root:root:root { --bg: #0b1c2a; --surface: #12273a; --fg: #f1ede4; --muted: #8fa0ae; --line: #22384b;
+  --accent: #c49a62; --up: #6fcf97; --down: #f2827a; --axis: #b8c4cf; --c-mk: #4f8ff0; --c-spy: #d08a64; --gold: #c49a62; color-scheme: dark; }
+.brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.brand img { width: 46px; height: auto; flex: none; }
+.brand h1 { font: 500 30px/1.05 "EB Garamond", Georgia, serif; letter-spacing: 0; margin: 0; }
+.brand .tag { font: 12px var(--sans); color: var(--muted); margin-top: 3px; }
+header { align-items: center !important; padding-bottom: 14px; border-bottom: 1px solid var(--gold); }
+#periods { grid-template-columns: repeat(5, 1fr) 2.2fr !important; }
+.board.hold { padding: 4px 0 2px; }
+.board.hold h2 { margin: 10px 16px 6px; font: 500 12px var(--sans); color: var(--muted); }
+.hold table { width: 100%; border-collapse: collapse; font: 13px/1.3 var(--sans); font-variant-numeric: tabular-nums; }
+.hold td { padding: 7px 16px; border-top: 1px solid var(--line); }
+.hold td.t { font: 12px var(--mono); color: var(--muted); padding-inline: 0; width: 3.6em; }
+.hold td.w { text-align: right; font: 500 13px var(--mono); width: 4.4em; padding-left: 0; }
+.hold td.b { width: 26%; padding-left: 10px; }
+.hold .bar { height: 5px; background: var(--gold); border-radius: 3px; opacity: .75; }
+.hold .stale { margin: 0 16px 8px; font: 12px var(--sans); color: var(--down); }
+.disc { order: 10; margin: 0 2px; font: 11px/1.5 var(--sans); color: var(--muted); }
+@media (max-width: 959px) { .chart { order: 1; } #days { order: 2; } #hold { order: 3; } }
+@media (max-width: 420px) { .brand h1 { font-size: 26px; } .brand img { width: 40px; } .hold td { padding-inline: 10px; } .hold td.b { width: 18%; } }
+@media (max-width: 359px) { .days table, .days th { font-size: 9.5px; letter-spacing: -0.04em; } .days col.n { width: 24%; } }
+@media (min-width: 960px) { .disc { order: 0; } }`;
+
+// runs FIRST inside the page, before Pulse's own script: the numbers, the settings and the holdings
+const SHIM = `(${function (PULSE, FROM) {
+  // this page's settings are its own: Pulse's keys ("pulse.*") are kept under "makb.*"
+  const ren = (k) => typeof k === "string" && k.startsWith("pulse.") ? "makb." + k.slice(6) : k;
+  for (const m of ["getItem", "setItem", "removeItem"]) { const f = Storage.prototype[m]; Storage.prototype[m] = function (k, ...a) { return f.call(this, ren(k), ...a); }; }
+  try { if (localStorage.getItem("pulse.period") === null) localStorage.setItem("pulse.period", "mak"); } catch (e) {}
+  const real = window.fetch.bind(window);
+  window.fetch = async (u, o) => {
+    const s = String(u);
+    if (/(^|\/)balance\.enc/.test(s)) return new Response("", { status: 404 });          // never the account balance
+    if (/(^|\/)data\.json/.test(s) && !s.startsWith(PULSE)) {                          // Pulse's figures, Makarios and SPY only
+      const r = await real(PULSE + "data.json?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) return r;
+      const all = await r.json(), keep = ["makarios", "spy"];
+      const lines = keep.map((k) => all.lines.find((l) => l.key === k)).filter(Boolean)
+        .map((l) => ({ key: l.key, name: l.name, series: l.series.filter((p) => p[0] >= FROM) }));
+      if (lines.length !== keep.length) return new Response("", { status: 503 });
+      window.__mak = { holdingsOn: (all.holdingsOn || {}).makarios, last: lines[0].series[lines[0].series.length - 1][0] };
+      const out = { updatedAt: all.updatedAt, priceTime: all.priceTime, strategiesSyncedAt: all.strategiesSyncedAt, allStart: FROM,
+        holdingsOn: { makarios: window.__mak.holdingsOn }, overdue: (all.overdue || []).filter((t) => /Makarios/.test(t)), lines };
+      setTimeout(window.__makHold, 0);
+      return new Response(JSON.stringify(out), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return real(u, o);
+  };
+  // THE HOLDINGS: the Mac mini's holdings.json; flagged when they are older than the holdings the Makarios line carries
+  window.__makHold = async () => {
+    const el = document.getElementById("hold"); if (!el) return;
+    const fd = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+    const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+    try {
+      const r = await real("holdings.json?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const h = await r.json(), top = h.holdings.length ? h.holdings[0].w : 1, m = window.__mak || {};
+      const stale = m.holdingsOn && h.holdings_from && h.holdings_from < m.holdingsOn;
+      el.innerHTML = `<h2>Holdings · at the close of ${fd(h.as_of)}, by value</h2>` +
+        (stale ? `<div class="stale">These holdings are from ${fd(h.holdings_from)}; the Makarios line holds those of ${fd(m.holdingsOn)}. They update with the next daily run.</div>` : "") +
+        `<table><tbody>` + h.holdings.map((x) => `<tr><td>${esc(x.n)}</td><td class="t">${esc(x.t)}</td><td class="w">${(x.w * 100).toFixed(1)}%</td>` +
+          `<td class="b"><div class="bar" style="width:${Math.max(3, 100 * x.w / top)}%"></div></td></tr>`).join("") +
+        (h.cash > 0.0005 ? `<tr><td>Cash</td><td class="t"></td><td class="w">${(h.cash * 100).toFixed(1)}%</td><td class="b"></td></tr>` : "") + `</tbody></table>`;
+      el.hidden = false;
+    } catch (e) { /* offline or not yet published: the section stays as it was */ }
+  };
+}})(${JSON.stringify(PULSE)}, ${JSON.stringify(FROM)});`;
+
+(async () => {
+  let html;
+  try {
+    const r = await fetch(PULSE + "index.html?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    html = await r.text();
+  } catch (e) { document.getElementById("msg").textContent = "The page could not be loaded. Please try again shortly."; return; }
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const $ = (q) => doc.querySelector(q);
+  const set = (q, f) => { const e = $(q); if (e) f(e); };
+  doc.title = "Makarios vs SPY";
+  set('meta[name="apple-mobile-web-app-title"]', (e) => e.setAttribute("content", "Makarios"));
+  doc.querySelectorAll('link[rel="manifest"], link[rel="apple-touch-icon"], link[rel="icon"]').forEach((e) => e.remove());
+  for (const rel of ["icon", "apple-touch-icon"]) { const l = doc.createElement("link"); l.rel = rel; l.href = "logo.png"; doc.head.append(l); }
+  const fonts = doc.createElement("link"); fonts.rel = "stylesheet";
+  fonts.href = "https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&display=swap"; doc.head.append(fonts);
+  const css = doc.createElement("style"); css.textContent = MAKARIOS_CSS; doc.head.append(css);
+  const shim = doc.createElement("script"); shim.textContent = SHIM; doc.head.prepend(shim);
+  set("header h1", (h) => {
+    const b = doc.createElement("div"); b.className = "brand";
+    b.innerHTML = '<img src="logo.png" alt="Makarios crest"><div><h1>Makarios</h1><div class="tag">Performance against SPY since inception, 16 May 2025</div></div>';
+    h.replaceWith(b);
+  });
+  set("#periods", (n) => {
+    n.innerHTML = [["day", "Today"], ["1m", "1M"], ["3m", "3M"], ["ytd", "YTD"], ["1y", "1Y"], ["mak", "Since inception"]]
+      .map(([p, t]) => `<button data-p="${p}"${p === "mak" ? ' title="Since 16 May 2025"' : ""}>${t}</button>`).join("");
+  });
+  ["#bal", "#lnote", "#drift"].forEach((q) => set(q, (e) => e.remove()));
+  set("#foot", (f) => {
+    const h = doc.createElement("section"); h.className = "board hold"; h.id = "hold"; h.hidden = true; h.setAttribute("aria-label", "Holdings");
+    f.before(h);
+    const p = doc.createElement("p"); p.className = "disc";
+    p.textContent = "Past performance is not a reliable indicator of future results. Makarios is the strategy's time-weighted return, rebuilt " +
+      "from the custodian's records and each day's closing prices (the latest prices during the US session); deposits and withdrawals do " +
+      "not move it, and money held in the Schwab US Treasury money fund is outside the strategy. SPY is its total return, dividends " +
+      "reinvested. For information only; not an offer to buy or sell any security.";
+    f.after(p);
+  });
+  document.open();
+  document.write("<!doctype html>\n" + doc.documentElement.outerHTML);
+  document.close();
+})();
+</script>
+</body>
+</html>
