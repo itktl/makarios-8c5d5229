@@ -68,8 +68,11 @@ const SHIM = `(${function (PULSE, FROM) {
         .map((l) => ({ key: l.key, name: l.name, series: l.series.filter((p) => p[0] >= FROM) }));
       if (lines.length !== keep.length) return new Response("", { status: 503 });
       window.__mak = { holdingsOn: (all.holdingsOn || {}).makarios, last: lines[0].series[lines[0].series.length - 1][0] };
-      const out = { updatedAt: all.updatedAt, priceTime: all.priceTime, strategiesSyncedAt: all.strategiesSyncedAt, allStart: FROM,
-        holdingsOn: { makarios: window.__mak.holdingsOn }, overdue: (all.overdue || []).filter((t) => /Makarios/.test(t)), lines };
+      // EVERYTHING PULSE SENDS COMES THROUGH (its calendar, its staleness clocks, whatever it adds next), except what is
+      // the owner's alone: the other strategies' lines and books, the live account's split, and warnings about them
+      const out = Object.assign({}, all, { allStart: FROM, lines, holdingsOn: { makarios: window.__mak.holdingsOn },
+        overdue: (all.overdue || []).filter((t) => /Makarios/.test(t)) });
+      for (const k of ["launched", "plannerSyncedAt", "planStart", "account", "balance"]) delete out[k];
       setTimeout(window.__makHold, 0);
       return new Response(JSON.stringify(out), { status: 200, headers: { "Content-Type": "application/json" } });
     }
