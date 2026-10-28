@@ -2,8 +2,8 @@ name: board
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/15 13-20 * * 1-5"   # every 15 minutes across the US session (UTC), the Board page takes Portfolio Pulse's figures
-    - cron: "15 21 * * 1-5"        # once after the close
+    - cron: "7,22,37,52 13-20 * * 1-5"   # every 15 minutes across the US session (UTC), 7 minutes after Portfolio Pulse publishes, whose figures this page takes
+    - cron: "30 21 * * 1-5"        # once after Pulse's post-close publish
 concurrency: { group: live, cancel-in-progress: false }
 permissions: { contents: write }
 jobs:
