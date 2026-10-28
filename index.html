@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Makarios vs SPY</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* THE MAKARIOS HOUSE STYLE, from the Board's factsheet: deep navy, a gold rule, serif headings */
+:root { --bg: #0b1c2a; --card: #12273a; --ink: #f1ede4; --muted: #8fa0ae; --line: #22384b; --gold: #c49a62;
+  --mak: #4f8ff0; --spy: #d08a64; --up: #6fcf97; --down: #f2827a; }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+main { max-width: 900px; margin: 0 auto; padding: 28px 16px 48px; }
+header { display: flex; gap: 16px; align-items: center; padding-bottom: 18px; border-bottom: 1px solid var(--gold); }
+header img { width: 52px; height: auto; flex: none; }
+h1 { font: 500 34px/1.1 "EB Garamond", Georgia, serif; margin: 0; }
+.tag { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.asof { margin-left: auto; text-align: right; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.asof b { color: var(--ink); font-weight: 500; }
+.eyebrow { color: var(--gold); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; margin: 26px 0 10px; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); padding: 5px 12px; border-radius: 999px; font: inherit; font-size: 13px; cursor: pointer; }
+.tabs button[aria-pressed="true"] { border-color: var(--gold); color: var(--ink); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+.stat { background: var(--card); border-top: 2px solid var(--gold); border-radius: 4px; padding: 14px 14px 12px; }
+.stat .v { font: 400 32px/1.1 "EB Garamond", Georgia, serif; font-variant-numeric: lining-nums tabular-nums; }
+.stat .k { color: var(--muted); font-size: 12px; margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.up { color: var(--up); } .down { color: var(--down); }
+.sub { color: var(--muted); font-size: 12px; margin-top: 8px; }
+.card { background: var(--card); border-radius: 4px; padding: 16px; margin-top: 12px; }
+svg { display: block; width: 100%; height: auto; }
+.axis { fill: var(--muted); font-size: 11px; }
+.grid { stroke: var(--line); stroke-width: 1; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 4px; border-bottom: 1px solid var(--line); text-align: left; font-size: 14px; }
+th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+td.w, th.w { text-align: right; }
+.bar { height: 5px; background: var(--gold); border-radius: 3px; opacity: .7; }
+.note { color: var(--muted); font-size: 11px; margin-top: 22px; border-top: 1px solid var(--line); padding-top: 12px; }
+@media (max-width: 560px) { .stat .v { font-size: 24px; } .stats { gap: 8px; } h1 { font-size: 28px; } .asof { display: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="logo.png" alt="Makarios crest">
+    <div><h1>Makarios</h1><div class="tag">Performance against SPY, updated daily</div></div>
+    <div class="asof">Inception <b>16 May 2025</b><br><span id="asof"></span></div>
+  </header>
+  <div class="eyebrow">Return</div>
+  <div class="tabs" id="tabs" role="group" aria-label="Period"></div>
+  <div class="stats">
+    <div class="stat"><div class="v" id="vm">–</div><div class="k"><span class="dot" style="background:var(--mak)"></span>Makarios</div></div>
+    <div class="stat"><div class="v" id="vs">–</div><div class="k"><span class="dot" style="background:var(--spy)"></span>SPY (total return)</div></div>
+    <div class="stat"><div class="v" id="vd">–</div><div class="k">Excess return vs SPY</div></div>
+  </div>
+  <div class="sub" id="vp"></div>
+  <section class="card"><div id="chart"></div></section>
+  <div class="eyebrow">Holdings</div>
+  <section class="card">
+    <div class="sub" id="hfrom" style="margin:0 0 8px"></div>
+    <table><thead><tr><th>Company</th><th>Ticker</th><th class="w">Weight</th><th style="width:28%"></th></tr></thead><tbody id="hold"></tbody></table>
+  </section>
+  <p class="note">Past performance is not a reliable indicator of future results. Makarios is the strategy's time-weighted return from
+    the close of its inception day, 16 May 2025, rebuilt daily from the custodian's records and each day's closing prices; deposits and
+    withdrawals do not move it, and money held in the Schwab US Treasury money fund is outside the strategy. SPY is its total return,
+    dividends reinvested. For information only; not an offer to buy or sell any security.</p>
+</main>
+<script>
+const pct = (x, d = 2) => (x >= 0 ? "+" : "") + (x * 100).toFixed(d) + "%";
+const pp = x => (x >= 0 ? "+" : "") + (x * 100).toFixed(2) + " pts";
+const fmtDate = s => new Date(s + "T12:00:00Z").toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
+  const N = D.dates.length, last = D.dates[N - 1];
+  document.getElementById("asof").innerHTML = "Performance to <b>" + fmtDate(last) + "</b>";
+  const back = (months, ytd) => {
+    if (ytd) return last.slice(0, 4) + "-01-01";
+    const d = new Date(last + "T12:00:00Z"); d.setUTCMonth(d.getUTCMonth() - months); return d.toISOString().slice(0, 10);
+  };
+  // each period starts at the last close on or before its first day (the previous session for "Day")
+  const idxOnOrBefore = day => { let i = 0; for (let k = 0; k < N; k++) if (D.dates[k] <= day) i = k; return i; };
+  const periods = [
+    ["Day", N - 2], ["1M", idxOnOrBefore(back(1))], ["3M", idxOnOrBefore(back(3))], ["YTD", idxOnOrBefore(back(0, true)) ],
+    ["1Y", idxOnOrBefore(back(12))], ["Since inception", 0]];
+  // YTD starts at the last close of the previous year
+  periods[3][1] = idxOnOrBefore((+last.slice(0, 4) - 1) + "-12-31");
+  const tabs = document.getElementById("tabs");
+  let on = "Since inception";
+  try { on = localStorage.getItem("mak-period") || on; } catch (e) {}
+  if (!periods.some(p => p[0] === on)) on = "Since inception";
+  const draw = () => {
+    const [, a] = periods.find(p => p[0] === on);
+    [...tabs.children].forEach(b => b.setAttribute("aria-pressed", b.textContent === on));
+    const m = D.makarios.slice(a).map(v => v / D.makarios[a] - 1), s = D.spy.slice(a).map(v => v / D.spy[a] - 1);
+    const rm = m[m.length - 1], rs = s[s.length - 1];
+    const set = (id, v, txt) => { const e = document.getElementById(id); e.textContent = txt; e.className = "v" + (id === "vd" ? (v >= 0 ? " up" : " down") : ""); };
+    set("vm", rm, pct(rm)); set("vs", rs, pct(rs)); set("vd", rm - rs, pp(rm - rs));
+    const yrs = (new Date(last) - new Date(D.dates[a])) / 31557600000;
+    document.getElementById("vp").textContent = on === "Since inception" && yrs > 1
+      ? "Annualised: Makarios " + pct(Math.pow(1 + rm, 1 / yrs) - 1, 1) + ", SPY " + pct(Math.pow(1 + rs, 1 / yrs) - 1, 1)
+      : "From the close of " + fmtDate(D.dates[a]);
+    chart(D.dates.slice(a), m, s);
+  };
+  periods.forEach(([name]) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = name;
+    b.onclick = () => { on = name; try { localStorage.setItem("mak-period", on); } catch (e) {} draw(); };
+    tabs.appendChild(b);
+  });
+  draw();
+  const body = document.getElementById("hold"), top = D.holdings.length ? D.holdings[0].w : 1;
+  D.holdings.forEach(h => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td></td><td></td><td class="w">${(h.w * 100).toFixed(1)}%</td><td><div class="bar" style="width:${Math.max(2, 100 * h.w / top)}%"></div></td>`;
+    tr.children[0].textContent = h.n; tr.children[1].textContent = h.t;
+    body.appendChild(tr);
+  });
+  if (D.cash > 0.0005) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>Cash</td><td></td><td class="w">${(D.cash * 100).toFixed(1)}%</td><td></td>`; body.appendChild(tr);
+  }
+  document.getElementById("hfrom").textContent = "As held on " + fmtDate(last) + ", valued at that day's close";
+}).catch(() => { document.getElementById("asof").textContent = "The data could not be loaded. Please try again shortly."; });
+
+function chart(dates, m, s) {
+  const W = 820, H = 300, L = 46, R = 10, T = 10, B = 26, n = dates.length;
+  const all = m.concat(s); let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
+  const pad = (hi - lo) * 0.08 || 0.01; lo -= pad; hi += pad;
+  const x = i => L + (W - L - R) * (n < 2 ? 0 : i / (n - 1)), y = v => T + (H - T - B) * (hi - v) / (hi - lo);
+  const step = [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.5].find(t => (hi - lo) / t <= 6) || 1;
+  let g = "";
+  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
+    g += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"${Math.abs(v) < 1e-9 ? ' style="stroke:var(--muted);stroke-dasharray:3 3"' : ""}/>`;
+    g += `<text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${(v * 100).toFixed(step < 0.01 ? 1 : 0)}%</text>`;
+  }
+  const ticks = 4;
+  for (let k = 0; k <= ticks; k++) {
+    const i = Math.round((n - 1) * k / ticks);
+    if (n > 1) g += `<text class="axis" x="${x(i)}" y="${H - 6}" text-anchor="${k === 0 ? "start" : k === ticks ? "end" : "middle"}">${fmtDate(dates[i])}</text>`;
+  }
+  const path = v => v.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p).toFixed(1)).join("");
+  document.getElementById("chart").innerHTML =
+    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Makarios and SPY returns over the period">${g}` +
+    `<path d="${path(s)}" fill="none" stroke="var(--spy)" stroke-width="2"/>` +
+    `<path d="${path(m)}" fill="none" stroke="var(--mak)" stroke-width="2.4"/>` +
+    `<circle cx="${x(n - 1)}" cy="${y(s[n - 1])}" r="4" fill="var(--spy)"/><circle cx="${x(n - 1)}" cy="${y(m[n - 1])}" r="4" fill="var(--mak)"/></svg>`;
+}
+</script>
+</body>
+</html>
