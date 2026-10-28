@@ -138,10 +138,12 @@ function chart(dates, m, s) {
     g += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"${Math.abs(v) < 1e-9 ? ' style="stroke:var(--muted);stroke-dasharray:3 3"' : ""}/>`;
     g += `<text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${(v * 100).toFixed(step < 0.01 ? 1 : 0)}%</text>`;
   }
-  const ticks = 4;
+  // date labels: up to five, never the same session twice (a two-session view has just its two ends)
+  const ticks = Math.min(4, n - 1), seen = new Set();
   for (let k = 0; k <= ticks; k++) {
-    const i = Math.round((n - 1) * k / ticks);
-    if (n > 1) g += `<text class="axis" x="${x(i)}" y="${H - 6}" text-anchor="${k === 0 ? "start" : k === ticks ? "end" : "middle"}">${fmtDate(dates[i])}</text>`;
+    const i = Math.round((n - 1) * k / Math.max(1, ticks));
+    if (n < 2 || seen.has(i)) continue; seen.add(i);
+    g += `<text class="axis" x="${x(i)}" y="${H - 6}" text-anchor="${k === 0 ? "start" : k === ticks ? "end" : "middle"}">${fmtDate(dates[i])}</text>`;
   }
   const path = v => v.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p).toFixed(1)).join("");
   document.getElementById("chart").innerHTML =
