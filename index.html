@@ -4,133 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Makarios">
-<link rel="apple-touch-icon" href="logo.png">
-<link rel="icon" href="logo.png">
 <title>Makarios vs SPY</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=EB+Garamond:wght@400;500&display=swap">
-<style>
-/* Layout: on a phone one column - a period switch, ruled rows like a quote board, the chart, the notes; on a wide
-   screen the switch, rows and notes on the left and a chart filling the screen's height beside them */
-:root {
-  --bg: #f3f5f4; --surface: #ffffff; --fg: #15201c; --muted: #66736d; --line: #dde3e0;
-  --accent: #0f7b5f; --up: #0f7b5f; --down: #c2412d;
-  --axis: #3f4a45;
-  --c-account: #0f7b5f; --c-sh: #2f5fd0; --c-bh: #b7791f; --c-spy: #8a948f; --c-qqq: #b9c0bc; --c-mk: #7b4bb7; --c-ln: #c2185b;
-  --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0d1311; --surface: #141c19; --fg: #e6ece9; --muted: #8b9893; --line: #24302b;
-  --accent: #3ccf9f; --up: #3ccf9f; --down: #ff7a63;
-  --c-account: #3ccf9f; --c-sh: #7aa2ff; --c-bh: #f0b54a; --c-spy: #7d8a84; --c-qqq: #4d5954; --c-mk: #b993f0; --c-ln: #f06292;
-  --axis: #b9c5c0; color-scheme: dark; } }
-:root[data-theme="dark"] {
-  --bg: #0d1311; --surface: #141c19; --fg: #e6ece9; --muted: #8b9893; --line: #24302b;
-  --accent: #3ccf9f; --up: #3ccf9f; --down: #ff7a63;
-  --c-account: #3ccf9f; --c-sh: #7aa2ff; --c-bh: #f0b54a; --c-spy: #7d8a84; --c-qqq: #4d5954; --c-mk: #b993f0; --c-ln: #f06292;
-  --axis: #b9c5c0; color-scheme: dark; }
-* { box-sizing: border-box; }
-html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--bg); }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.4 var(--sans); -webkit-font-smoothing: antialiased; }
-main { max-width: 560px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 32px; display: grid; gap: 18px; }
-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
-.state { font: 500 11px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-.state.open .dot { background: var(--up); box-shadow: 0 0 0 3px color-mix(in srgb, var(--up) 22%, transparent); }
-.periods { display: grid; grid-template-columns: repeat(11, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
-.periods button { font: 500 13px var(--sans); color: var(--muted); background: none; border: 0; border-radius: 7px; padding: 8px 0; cursor: pointer; }
-.periods button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
-.periods button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.mbar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: -8px; }
-.measure { display: inline-grid; grid-template-columns: repeat(4, auto); background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 2px; }
-.measure button { font: 500 12px var(--sans); color: var(--muted); background: none; border: 0; border-radius: 7px; padding: 5px 14px; cursor: pointer; }
-.measure button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
-.measure button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.board { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-.row { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: 12px; padding: 14px 16px; border-top: 1px solid var(--line); }
-.row:first-child { border-top: 0; }
-#board .row { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
-#board .row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-#board .row.off .name, #board .row.off .val { opacity: 0.4; }
-#board .row.off .swatch { background: transparent !important; box-shadow: inset 0 0 0 1.5px var(--muted); }
-.swatch { width: 10px; height: 10px; border-radius: 2px; }
-.name { font-weight: 500; min-width: 0; }
-.sub { display: block; font: 12px var(--mono); color: var(--muted); margin-top: 2px; }
-.val { font: 500 22px/1 var(--mono); font-variant-numeric: tabular-nums; text-align: right; letter-spacing: -0.02em; }
-.val.up { color: var(--up); } .val.down { color: var(--down); } .val.none { color: var(--muted); font-size: 16px; }
-.row.you { background: color-mix(in srgb, var(--accent) 6%, transparent); }
-.row.you .val { font-size: 26px; }
-/* the side column is only a box on a wide screen; on a phone its parts sit in the page's one column, notes last */
-.side { display: contents; }
-.foot { order: 9; }
-.legend-note { margin: -6px 2px 0; font: 12px/1.5 var(--sans); color: var(--muted); }
-.legend-note b { color: var(--fg); font-weight: 500; }
-.drift { margin: -8px 2px 0; font: 12px/1.5 var(--mono); color: var(--muted); }
-.drift b { color: var(--fg); font-weight: 500; }
-.drift.warn, .drift.warn b { color: var(--down); }
-.chart { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 6px 6px; display: flex; flex-direction: column; }
-.plot { position: relative; height: min(78vw, 460px); }
-.plot canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: crosshair; }
-.plot canvas.grab { cursor: grabbing; }
-.plot canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
-.chart-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 6px 6px; font: 10px var(--mono); color: var(--muted); min-height: 18px; }
-.chart-bar button { font: 10px var(--mono); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; cursor: pointer; }
-.chart-bar button[hidden] { display: none; }
-.hint { padding: 6px 6px 0; font: 10px var(--mono); color: var(--muted); }
-.tip { position: absolute; top: 8px; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
-  padding: 6px 8px; font: 11px/1.45 var(--mono); color: var(--fg); box-shadow: 0 2px 10px rgb(0 0 0 / 0.12); white-space: nowrap; z-index: 2; }
-.tip .d { color: var(--muted); }
-.tip i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
-@media (max-width: 420px) { .periods { padding: 2px; } .periods button { font-size: 11px; padding: 8px 0; letter-spacing: -0.02em; } }
-@media (min-width: 960px) {
-  main { max-width: 1600px; padding-inline: 32px; grid-template-columns: minmax(440px, 520px) 1fr; column-gap: 28px; align-items: start; }
-  header { grid-column: 1 / -1; }
-  .side { display: flex; flex-direction: column; gap: 16px; grid-column: 1; }
-  .foot { order: 0; padding: 2px 4px 0; }
-  .chart { grid-column: 2; position: sticky; top: 16px; height: calc(100vh - 96px); min-height: 560px; padding: 14px 10px 8px; }
-  .plot { flex: 1; height: auto; }
-  .chart-bar, .hint { font-size: 11px; }
-  h1 { font-size: 22px; }
-}
-.foot { font: 12px/1.5 var(--mono); color: var(--muted); display: grid; gap: 2px; }
-.warn { color: var(--down); }
-.bal .row { grid-template-columns: 1fr auto; }
-.bal form { display: flex; gap: 8px; margin-top: 8px; }
-.bal input { flex: 1; min-width: 0; font: 15px var(--sans); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
-.bal input:focus-visible, .bal button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.bal button { font: 500 13px var(--sans); color: var(--bg); background: var(--fg); border: 0; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
-.bal .lock { font: 12px var(--mono); color: var(--muted); background: none; padding: 0; margin-left: 8px; text-decoration: underline; }
-/* THE LAST FIVE SESSIONS (owner 2026-10-28): each line's own close-to-close move, newest on the right */
-.days { padding: 12px 14px 10px; }
-.days h2 { margin: 0 0 8px; font: 500 12px var(--sans); color: var(--muted); }
-.days table { width: 100%; border-collapse: collapse; table-layout: fixed; font: 12px/1.3 var(--mono); font-variant-numeric: tabular-nums; }
-.days th { font: 500 11px var(--mono); color: var(--muted); text-align: right; padding: 0 0 6px; white-space: nowrap; }
-.days th:first-child { text-align: left; }
-.days td { text-align: right; padding: 7px 0; border-top: 1px solid var(--line); white-space: nowrap; }
-.days td:first-child { text-align: left; overflow: hidden; text-overflow: ellipsis; padding-right: 6px; font-family: var(--sans); font-weight: 500; }
-.days td:first-child i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 7px; vertical-align: 0; }
-.days col.n { width: 34%; }
-.days .up { color: var(--up); } .days .down { color: var(--down); } .days .none { color: var(--muted); }
-.days tr.off td { opacity: 0.4; }
-.days td.best { font-weight: 700; }
-@media (max-width: 420px) { .days { padding-inline: 10px; } .days table { font-size: 11px; } .days col.n { width: 30%; } }
-@media (prefers-reduced-motion: no-preference) { .val { transition: color .2s; } }
-/* MAKARIOS: the factsheet's colours in every scheme (this block outranks Pulse's light and dark tokens) */
+<link rel="icon" href="logo.png">
+<style>html,body{margin:0;background:#0b1c2a;color:#8fa0ae;font:14px system-ui,sans-serif}p{padding:24px}</style>
+</head>
+<body>
+<p id="msg">Loading…</p>
+<script>
+/* THE MAKARIOS BOARD PAGE IS PORTFOLIO PULSE ITSELF, RESTYLED AS IT OPENS (owner 2026-10-29: "make the Board page
+   intelligently adaptive so that drift or staleness is impossible").
+   Nothing of Pulse is copied here. Each time the page opens it loads Pulse's CURRENT page and Pulse's CURRENT figures from
+   the same site, so every Pulse feature and every Pulse number is the Board's the moment Pulse has it - the two cannot
+   drift. What changes on the way:
+     - the numbers: only Makarios and SPY (SPY from the close before Makarios's first session); no account balance;
+     - the look: the Makarios crest, navy and gold, the periods that suit a strategy begun on 16 May 2025;
+     - added: the holdings (holdings.json, from the Mac mini) and the disclaimer;
+     - the page's remembered settings are its own, never Pulse's (both pages live on itktl.github.io).
+   Every change is guarded and additive: nothing Pulse's script expects is removed (what is not shown is hidden), and if
+   Pulse's page is ever reshaped, the part that no longer fits is left as Pulse has it, never breaks the page. STALENESS IS SAID ON THE PAGE, never hidden: Pulse's own warnings (prices stopped, strategies not
+   updated) come through as they are, and holdings older than the Makarios line's own holdings date are flagged. */
+const PULSE = "/pulse-b2dedc/";
+const FROM = "2025-04-30";                       // SPY from the close before Makarios's first session
+const MAKARIOS_CSS = `
 :root:root:root { --bg: #0b1c2a; --surface: #12273a; --fg: #f1ede4; --muted: #8fa0ae; --line: #22384b;
   --accent: #c49a62; --up: #6fcf97; --down: #f2827a; --axis: #b8c4cf; --c-mk: #4f8ff0; --c-spy: #d08a64; --gold: #c49a62; color-scheme: dark; }
 .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .brand img { width: 46px; height: auto; flex: none; }
-.brand h1 { font: 500 30px/1.05 "EB Garamond", Georgia, serif; letter-spacing: 0; }
+.brand h1 { font: 500 30px/1.05 "EB Garamond", Georgia, serif; letter-spacing: 0; margin: 0; }
 .brand .tag { font: 12px var(--sans); color: var(--muted); margin-top: 3px; }
-header { align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--gold); }
-.periods { grid-template-columns: repeat(5, 1fr) 2.2fr; }
+header { align-items: center !important; padding-bottom: 14px; border-bottom: 1px solid var(--gold); }
+#periods { grid-template-columns: repeat(5, 1fr) 2.2fr !important; }
 .board.hold { padding: 4px 0 2px; }
 .board.hold h2 { margin: 10px 16px 6px; font: 500 12px var(--sans); color: var(--muted); }
 .hold table { width: 100%; border-collapse: collapse; font: 13px/1.3 var(--sans); font-variant-numeric: tabular-nums; }
@@ -139,691 +42,101 @@ header { align-items: center; padding-bottom: 14px; border-bottom: 1px solid var
 .hold td.w { text-align: right; font: 500 13px var(--mono); width: 4.4em; padding-left: 0; }
 .hold td.b { width: 26%; padding-left: 10px; }
 .hold .bar { height: 5px; background: var(--gold); border-radius: 3px; opacity: .75; }
+.hold .stale { margin: 0 16px 8px; font: 12px var(--sans); color: var(--down); }
+#bal, #lnote, #drift { display: none !important; }
 .disc { order: 10; margin: 0 2px; font: 11px/1.5 var(--sans); color: var(--muted); }
-@media (max-width: 420px) { .brand h1 { font-size: 26px; } .brand img { width: 40px; } .hold td { padding-inline: 10px; } .hold td.b { width: 18%; } }
-/* ON A PHONE the chart follows the figures, before the daily moves and the holdings */
 @media (max-width: 959px) { .chart { order: 1; } #days { order: 2; } #hold { order: 3; } }
+@media (max-width: 420px) { .brand h1 { font-size: 26px; } .brand img { width: 40px; } .hold td { padding-inline: 10px; } .hold td.b { width: 18%; } }
 @media (max-width: 359px) { .days table, .days th { font-size: 9.5px; letter-spacing: -0.04em; } .days col.n { width: 24%; } }
-@media (min-width: 960px) { .disc { order: 0; } }
-</style>
-</head>
-<body>
-<main>
-  <header>
-    <div class="brand"><img src="logo.png" alt="Makarios crest"><div><h1>Makarios</h1><div class="tag">Performance against SPY since inception, 16 May 2025</div></div></div>
-    <span class="state" id="state"><span class="dot"></span><span id="stateText">loading</span></span>
-  </header>
-  <div class="side">
-    <nav class="periods" id="periods" aria-label="Period">
-      <button data-p="day">Today</button>
-      <button data-p="1m">1M</button>
-      <button data-p="3m">3M</button>
-      <button data-p="ytd">YTD</button>
-      <button data-p="1y">1Y</button>
-      <button data-p="mak" title="Since 16 May 2025">Since inception</button>
-    </nav>
-    <div class="mbar"><div class="measure" id="measure" role="group" aria-label="Show growth as">
-      <button type="button" data-m="ret" title="Total growth over the period">Return</button>
-      <button type="button" data-m="cagr" title="Compound annual growth rate: the steady yearly rate that gives the same result">CAGR</button>
-      <button type="button" data-m="spy" title="How far ahead of (or behind) SPY over the period: the line's growth divided by SPY's">vs SPY</button>
-      <button type="button" data-m="mdd" title="Max drawdown: the largest fall from a closing high to a later close within the period">Max DD</button>
-    </div></div>
-    <section class="board" id="board" aria-live="polite"></section>
-    <p class="legend-note" id="lnote" hidden></p>
-    <p class="drift" id="drift" hidden></p>
-    <section class="board days" id="days" aria-label="Daily moves, last five sessions" hidden></section>
-    <section class="board hold" id="hold" aria-label="Holdings" hidden></section>
-    <footer class="foot" id="foot"></footer>
-    <p class="disc">Past performance is not a reliable indicator of future results. Makarios is the strategy's time-weighted return,
-      rebuilt from the custodian's records and each day's closing prices (the latest prices during the US session); deposits and
-      withdrawals do not move it, and money held in the Schwab US Treasury money fund is outside the strategy. SPY is its total
-      return, dividends reinvested. For information only; not an offer to buy or sell any security.</p>
-  </div>
-  <section class="chart">
-    <div class="chart-bar"><span id="scale"></span><button type="button" id="reset" hidden>Reset view</button></div>
-    <div class="plot" id="plot">
-      <canvas id="cv" tabindex="0" role="img" aria-label="Growth over the period. Scroll or pinch to zoom, drag to pan, double-click an axis to reset."></canvas>
-      <canvas id="ov" aria-hidden="true" style="pointer-events:none"></canvas>
-    </div>
-    <div class="hint" id="hint"></div>
-  </section>
-</main>
-<script>
-const COLORS = { account: "--c-account", spyHunter: "--c-sh", bargainHunter: "--c-bh", spy: "--c-spy", qqq: "--c-qqq", makarios: "--c-mk", launched: "--c-ln" };
-let data = null;
-// LINES SHOWN ON THE CHART: tap a row to hide or show its line; remembered on this device only
-let hidden = (() => { try { return new Set(JSON.parse(localStorage.getItem("makb.hidden") || "[]")); } catch { return new Set(); } })();
-function toggle(key) {
-  hidden.has(key) ? hidden.delete(key) : hidden.add(key);
-  try { localStorage.setItem("makb.hidden", JSON.stringify([...hidden])); } catch {}
-  render();
-}
-let period = (() => { try { return localStorage.getItem("makb.period") || "mak"; } catch { return "mak"; } })();
+@media (min-width: 960px) { .disc { order: 0; } }`;
 
-const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const fmtDate = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short", timeZone: "UTC" });
-const fmtLong = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-
-function startDate(p, last) {
-  const d = new Date(last + "T12:00:00Z");
-  const m = /^(\d+)([my])$/.exec(p);
-  if (m) { m[2] === "m" ? d.setUTCMonth(d.getUTCMonth() - +m[1]) : d.setUTCFullYear(d.getUTCFullYear() - +m[1]); return d.toISOString().slice(0, 10); }
-  if (p === "ytd") return (d.getUTCFullYear() - 1) + "-12-31";
-  if (p === "plan") return data.planStart;
-  if (p === "all") return data.allStart;
-  return null;
-}
-const pct = (x) => (x >= 0 ? "+" : "−") + Math.abs(x * 100).toLocaleString(undefined, { minimumFractionDigits: Math.abs(x) >= 10 ? 0 : Math.abs(x) < 0.1 ? 2 : 1, maximumFractionDigits: Math.abs(x) >= 10 ? 0 : Math.abs(x) < 0.1 ? 2 : 1 }) + "%";
-// dp: decimals to print; the linear scale passes its step's (`stepDecimals`), so neighbouring ticks never share a label
-const pctTick = (v, dp) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v * 100).toLocaleString(undefined, dp === undefined
-  ? { maximumFractionDigits: Math.abs(v) < 0.1 ? 1 : 0 } : { minimumFractionDigits: dp, maximumFractionDigits: dp }) + "%";
-// the fewest decimals that tell ticks one `step` apart (a fraction: 0.0005 = 0.05% -> 2; 0.002 -> 1; 0.01 -> 0)
-const stepDecimals = (step) => Math.max(0, Math.ceil(-Math.log10(step * 100) - 1e-9));
-
-// ─── THE CHART ─────────────────────────────────────────────────────────────────────────────────────────────────────
-// Every line is laid on one calendar of sessions (P.D) as a Float64Array, so a view is just two numbers - the first and
-// last session shown (fractional while zooming) - and drawing is a single pass over what is visible. Where there are more
-// sessions than pixels, each pixel column draws only its first, lowest, highest and last value (nothing visible is lost,
-// and 33 years draw as fast as one month). Everything is measured from the first session in view, like the rows.
-let P = null;                       // the prepared calendar and lines
-let view = null;                    // { a, b }: sessions shown (indices into P.D)
-let yv = null;                      // null: fit to what is shown; else { lo, hi, logs } fixed by the reader
-// RETURN OR CAGR (owner 2026-10-27): the rows and the readout show total growth, or the compound annual rate that gives
-// it - (end / start) ^ (365.25 / calendar days between the two closes) - 1, for every span, short ones included (owner:
-// "do the math properly"); a short span's yearly rate is large because that is what compounding it for a year gives
-let measure = (() => { try { const m = localStorage.getItem("makb.measure"); return m === "cagr" || m === "mdd" || m === "spy" ? m : "ret"; } catch { return "ret"; } })();
-const YEAR_DAYS = 365.25;
-function shownGrowth(ratio, from, to) {
-  if (measure !== "cagr") return { r: ratio - 1, note: "" };
-  const days = (Date.parse(to) - Date.parse(from)) / 864e5;
-  if (!(days > 0)) return { r: ratio - 1, note: "" };                       // one close only: no time has passed
-  return { r: Math.pow(ratio, YEAR_DAYS / days) - 1, note: "a year" };
-}
-let custom = false;                 // the reader has zoomed or panned away from the period's view
-let rowEls = {};
-const M = { L: 8, R: 72, T: 10, B: 28 };
-
-function prepare() {
-  const set = new Set();
-  for (const l of data.lines) for (const [d] of l.series) set.add(d);
-  const D = [...set].sort();
-  const at = new Map(D.map((d, i) => [d, i]));
-  const arr = {}, first = {}, last = {};
-  for (const l of data.lines) {
-    const a = new Float64Array(D.length).fill(NaN);
-    for (const [d, v] of l.series) a[at.get(d)] = v;
-    let f = -1, e = -1, carry = NaN;
-    for (let i = 0; i < D.length; i++) { if (!Number.isNaN(a[i])) { if (f < 0) f = i; e = i; carry = a[i]; } else if (f >= 0) a[i] = carry; }
-    for (let i = e + 1; i < D.length; i++) a[i] = NaN;   // a line stops where its record stops
-    arr[l.key] = a; first[l.key] = f; last[l.key] = e;
-  }
-  // VS SPY (owner 2026-10-28): each line divided by SPY on the same session, so its growth is how far it is ahead of
-  // or behind SPY - a line that only matched SPY reads 0%
-  const spy = arr.spy, rel = {}, rfirst = {}, rlast = {};
-  for (const k in arr) {
-    const a = arr[k], r = new Float64Array(D.length).fill(NaN);
-    let f = -1, e = -1;
-    if (spy) for (let i = 0; i < D.length; i++) { const v = a[i] / spy[i]; if (Number.isFinite(v)) { r[i] = v; if (f < 0) f = i; e = i; } }
-    rel[k] = r; rfirst[k] = f; rlast[k] = e;
-  }
-  P = { D, n: D.length, raw: { arr, first, last }, rel: { arr: rel, first: rfirst, last: rlast } };
-  useMeasure();
-}
-// the chart, rows and readout read P.arr / P.first / P.last: the lines themselves, or the lines over SPY
-function useMeasure() { if (!P) return; const s = measure === "spy" && P.raw.arr.spy ? P.rel : P.raw; P.arr = s.arr; P.first = s.first; P.last = s.last; }
-function lastAtOrBefore(day) { let lo = 0, hi = P.n - 1, r = -1; while (lo <= hi) { const m = (lo + hi) >> 1; if (P.D[m] <= day) { r = m; lo = m + 1; } else hi = m - 1; } return r; }
-const MAK_FROM = "2025-05-16";                                                  // the owner's chosen start
-const MAK_FROM_CLOSE = new Date(Date.parse(MAK_FROM) - 864e5).toISOString().slice(0, 10);   // the close before it
-function periodView() {
-  const b = P.n - 1;
-  if (period === "day") return { a: Math.max(0, b - 1), b };
-  // MAK: from 16 May 2025 (owner 2026-10-27), i.e. from the close of the session before it, the same rule as every period
-  if (period === "mak") return { a: Math.max(0, lastAtOrBefore(MAK_FROM_CLOSE)), b };
-  const s = startDate(period, P.D[b]);
-  return { a: Math.max(0, s ? lastAtOrBefore(s) : 0), b };
-}
-function clampView(v) {
-  const max = P.n - 1, minW = Math.min(4, max);
-  let w = Math.min(Math.max(v.b - v.a, minW), max);
-  let a = Math.min(Math.max(v.a, 0), max - w);
-  return { a, b: a + w };
-}
-const shown = () => data.lines.map((l) => l.key).filter((k) => !hidden.has(k));
-// A LINE THAT STARTS INSIDE THE VIEW (Makarios, QQQ, your account on All) sits at 0% - drawn dotted, it has no record
-// there - until its first day, and grows from 0% from then (owner 2026-10-27); its row and readout give its growth
-// since that first day
-function baseOf(k, ia, i1) {
-  const a = P.arr[k];
-  if (!Number.isNaN(a[ia])) return a[ia];
-  const f = P.first[k];
-  return f < 0 || f < ia || f > i1 ? NaN : a[f];
-}
-const ownStart = (k, ia) => Math.max(ia, P.first[k]);
-function baseIndex() { return Math.min(P.n - 1, Math.max(0, Math.ceil(view.a - 1e-9))); }
-function endIndex() { return Math.min(P.n - 1, Math.max(0, Math.floor(view.b + 1e-9))); }
-
-// the rows: built once per load, their numbers refreshed whenever the view moves
-function buildRows() {
-  const board = document.getElementById("board");
-  board.textContent = ""; rowEls = {};
-  for (const line of data.lines) {
-    const row = document.createElement("div");
-    row.className = "row" + (line.key === "account" ? " you" : "");
-    const sw = document.createElement("span"); sw.className = "swatch"; sw.style.background = `var(${COLORS[line.key]})`;
-    const name = document.createElement("span"); name.className = "name"; name.textContent = line.name;
-    const sub = document.createElement("span"); sub.className = "sub";
-    const val = document.createElement("span"); val.className = "val";
-    name.appendChild(sub); row.append(sw, name, val);
-    const off = hidden.has(line.key);
-    row.classList.toggle("off", off);
-    row.tabIndex = 0; row.setAttribute("role", "button"); row.setAttribute("aria-pressed", String(!off));
-    row.title = (off ? "Show " : "Hide ") + line.name + " on the chart";
-    row.addEventListener("click", () => toggle(line.key));
-    row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(line.key); } });
-    board.appendChild(row);
-    rowEls[line.key] = { sub, val };
-  }
-}
-let rowsFor = "";
-// WHAT LIVE MODEL 1 IS MADE OF (owner 2026-10-27), from the weights the mini sends - never typed into the page
-function legendNote() {
-  const el = document.getElementById("lnote"), ln = data.launched;
-  if (!ln || !ln.sleeves) { el.hidden = true; return; }
-  const parts = Object.entries(ln.sleeves).sort((a, b) => b[1] - a[1]).map(([n, w]) => `<b>${Math.round(w * 100)}% ${n}</b>`);
-  const name = (data.lines.find((l) => l.key === "launched") || {}).name || "Live Model 1";
-  el.innerHTML = `<b>${name}</b> is ${parts.join(" and ")}, put back to that split whenever either strategy trades. ` +
-    `Simulated to ${fmtLong(ln.simTo)}` + (ln.liveFrom ? `; from ${fmtLong(ln.liveFrom)} it is your real account.` : "; not live yet.");
-  el.hidden = false;
-}
-// LIVE AGAINST THE MODEL (owner 2026-10-28): since the account went live, has it kept up with the simulated split it is
-// meant to follow? The model is each sleeve's own line, weighted as sent and held between trades; it is put back to
-// the split on every trade date the mini reports. Red once the two are DRIFT_PCT apart either way.
-const DRIFT_PCT = 0.005;
-function driftNote() {
-  const el = document.getElementById("drift"), ln = data.launched;
-  const acc = P && P.raw.arr.account;
-  if (!ln || !ln.liveFrom || !ln.sleeves || !acc) { el.hidden = true; return; }
-  const b = lastAtOrBefore(new Date(Date.parse(ln.liveFrom) - 864e5).toISOString().slice(0, 10)), e = P.raw.last.account;
-  const key = Object.fromEntries(data.lines.map((l) => [l.name, l.key]));
-  const legs = Object.entries(ln.sleeves).map(([n, w]) => ({ k: key[n], w })).filter((x) => x.k && P.raw.arr[x.k]);
-  if (b < 0 || e <= b || legs.length !== Object.keys(ln.sleeves).length || Number.isNaN(acc[b])) { el.hidden = true; return; }
-  // trade dates after the start, from the mini's "holdings since" dates: the model is reset to the split there
-  const resets = [...new Set(legs.map((x) => (data.holdingsOn || {})[x.k]).filter((d) => d && d > P.D[b]))].map(lastAtOrBefore).filter((i) => i > b && i <= e).sort((p, q) => p - q);
-  let model = 1, from = b;
-  for (const r of [...resets, e]) { model *= legs.reduce((t, x) => t + x.w * P.raw.arr[x.k][r] / P.raw.arr[x.k][from], 0); from = r; }
-  const live = acc[e] / acc[b], gap = live / model - 1;
-  el.innerHTML = `Live vs model since ${fmtDate(P.D[b])} close: your account <b>${pct(live - 1)}</b>, the ${Object.values(ln.sleeves).sort((p, q) => q - p).map((w) => Math.round(w * 100)).join("/")} model <b>${pct(model - 1)}</b> · ` +
-    `<b>${Math.abs(gap) < 5e-5 ? "level" : (gap > 0 ? pct(gap).slice(1) + " ahead" : pct(gap).slice(1) + " behind")}</b>`;
-  el.classList.toggle("warn", Math.abs(gap) >= DRIFT_PCT);
-  el.title = "Red once the account and the model are " + (DRIFT_PCT * 100) + "% apart";
-  el.hidden = false;
-}
-// THE LAST FIVE SESSIONS (owner 2026-10-28): every line's move from the previous session's close to that session's
-// close, read from its own record only - a day it has no value on, or no value the session before, is left blank
-// (never 0%, never a carried value). Fixed to the latest five sessions whatever the chart is showing.
-const pct2 = (x) => (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(2) + "%";
-function dailyTable() {
-  const el = document.getElementById("days");
-  const N = 5, D = P.D;
-  if (D.length < 2) { el.hidden = true; return; }
-  const cols = D.slice(Math.max(1, D.length - N));
-  const own = Object.fromEntries(data.lines.map((l) => [l.key, new Map(l.series)]));
-  const head = cols.map((d) => `<th>${fmtDate(d)}</th>`).join("");
-  const moves = data.lines.map((l) => cols.map((d) => {
-    const prev = D[D.indexOf(d) - 1], a = own[l.key].get(prev), b = own[l.key].get(d);
-    return a > 0 && b > 0 ? { r: b / a - 1 } : { gap: fmtLong(a > 0 ? d : prev) };
-  }));
-  // each session's best move is bold (owner 2026-10-28); judged on the figure shown, so a tie bolds both
-  const best = cols.map((_, j) => Math.max(...moves.map((row) => row[j].gap ? -Infinity : +pct2(row[j].r).replace("−", "-").replace("%", ""))));
-  const body = data.lines.map((l, li) => {
-    const cells = moves[li].map((c, j) => {
-      if (c.gap) return `<td class="none" title="no value for ${l.name} on ${c.gap}">–</td>`;
-      const top = +pct2(c.r).replace("−", "-").replace("%", "") === best[j];
-      return `<td class="${c.r >= 0 ? "up" : "down"}${top ? " best" : ""}">${pct2(c.r)}</td>`;
-    }).join("");
-    const esc = l.name.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-    return `<tr class="${hidden.has(l.key) ? "off" : ""}"><td title="${esc}"><i style="background:var(${COLORS[l.key]})"></i>${esc}</td>${cells}</tr>`;
-  }).join("");
-  el.innerHTML = `<h2>Daily moves · last ${cols.length} sessions</h2><table><colgroup><col class="n">${cols.map(() => "<col>").join("")}</colgroup>` +
-    `<thead><tr><th></th>${head}</tr></thead><tbody>${body}</tbody></table>`;
-  el.hidden = false;
-}
-// MAX DRAWDOWN (owner 2026-10-28): the largest fall from a closing high to a later close, both inside the view and
-// from the line's own first close in it. A drop that has not yet regained its high by the view's end says so.
-function maxDD(k, s, e) {
-  const a = P.raw.arr[k];
-  let hi = -Infinity, hiAt = s, dd = 0, peak = s, trough = s;
-  for (let i = s; i <= e; i++) {
-    const v = a[i]; if (Number.isNaN(v)) continue;
-    if (v > hi) { hi = v; hiAt = i; }
-    const d = v / hi - 1;
-    if (d < dd) { dd = d; peak = hiAt; trough = i; }
-  }
-  let recovered = false;
-  for (let i = trough + 1; i <= e && dd < 0; i++) if (a[i] >= a[peak]) { recovered = true; break; }
-  return { dd, peak, trough, recovered };
-}
-function updateRows() {
-  const ia = baseIndex(), ib = endIndex();
-  if (rowsFor === ia + ":" + ib) return;
-  rowsFor = ia + ":" + ib;
-  const to = ib < P.n - 1 ? " to " + fmtLong(P.D[ib]) : "";
-
-  for (const line of data.lines) {
-    const { sub, val } = rowEls[line.key], a = P.arr[line.key];
-    const s0 = ownStart(line.key, ia), base = s0 <= ib ? a[s0] : NaN, end = a[Math.min(ib, P.last[line.key])];
-    val.className = "val";
-    if (Number.isNaN(base) || Number.isNaN(end)) {
-      val.textContent = "n/a"; val.classList.add("none");
-      sub.textContent = P.first[line.key] > ia ? "starts " + fmtLong(P.D[P.first[line.key]]) : "no record in this view";
-    } else {
-      // A LINE WHOSE RECORD STARTS INSIDE THE PERIOD is held at 0% until then, as the chart draws it (owner 2026-10-27),
-      // so its yearly rate is over the whole period, like every other row's - not over its own few days
-      // the base is the close of the last session on or before the period's start (a year before Mon 26 Oct 2026 is a
-      // Sunday, so 1Y runs from Friday 24 Oct 2025's close); the year is named whenever it is not the latest one's
-      const when = (i) => P.D[i].slice(0, 4) !== P.D[ib].slice(0, 4) ? fmtLong(P.D[i]) : fmtDate(P.D[i]);
-      if (measure === "mdd") {
-        const m = maxDD(line.key, s0, Math.min(ib, P.last[line.key]));
-        val.textContent = m.dd < 0 ? pct(m.dd) : "0%"; val.classList.add(m.dd < 0 ? "down" : "up");
-        sub.textContent = m.dd < 0 ? "worst fall " + when(m.peak) + " → " + when(m.trough) + (m.recovered ? "" : " · not yet recovered")
-          : "no fall since " + (s0 > ia ? "its record began " + when(s0) : when(ia) + " close") + to;
-        continue;
-      }
-      const { r, note } = shownGrowth(end / base, P.D[ia], P.D[Math.min(ib, P.last[line.key])]);
-      val.textContent = pct(r) + (note === "a year" ? "/yr" : ""); val.classList.add(r >= 0 ? "up" : "down");
-      if (measure === "spy" && line.key === "spy") { val.className = "val none"; val.textContent = "0%"; sub.textContent = "the yardstick"; continue; }
-      sub.textContent = (measure === "spy" ? (r >= 0 ? "ahead of SPY since " : "behind SPY since ") : "since ") + when(ia) + " close" + to + (s0 > ia ? " · record from " + when(s0) : "");
+// runs FIRST inside the page, before Pulse's own script: the numbers, the settings and the holdings
+const SHIM = `(${function (PULSE, FROM) {
+  // this page's settings are its own: Pulse's keys ("pulse.*") are kept under "makb.*"
+  const ren = (k) => typeof k === "string" && k.startsWith("pulse.") ? "makb." + k.slice(6) : k;
+  for (const m of ["getItem", "setItem", "removeItem"]) { const f = Storage.prototype[m]; Storage.prototype[m] = function (k, ...a) { return f.call(this, ren(k), ...a); }; }
+  try { if (localStorage.getItem("pulse.period") === null) localStorage.setItem("pulse.period", "mak"); } catch (e) {}
+  const real = window.fetch.bind(window);
+  window.fetch = async (u, o) => {
+    const s = String(u);
+    if (/(^|\/)balance\.enc/.test(s)) return new Response("", { status: 404 });          // never the account balance
+    if (/(^|\/)data\.json/.test(s) && !s.startsWith(PULSE)) {                          // Pulse's figures, Makarios and SPY only
+      const r = await real(PULSE + "data.json?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) return r;
+      const all = await r.json(), keep = ["makarios", "spy"];
+      const lines = keep.map((k) => all.lines.find((l) => l.key === k)).filter(Boolean)
+        .map((l) => ({ key: l.key, name: l.name, series: l.series.filter((p) => p[0] >= FROM) }));
+      if (lines.length !== keep.length) return new Response("", { status: 503 });
+      window.__mak = { holdingsOn: (all.holdingsOn || {}).makarios, last: lines[0].series[lines[0].series.length - 1][0] };
+      const out = { updatedAt: all.updatedAt, priceTime: all.priceTime, strategiesSyncedAt: all.strategiesSyncedAt, allStart: FROM,
+        holdingsOn: { makarios: window.__mak.holdingsOn }, overdue: (all.overdue || []).filter((t) => /Makarios/.test(t)), lines };
+      setTimeout(window.__makHold, 0);
+      return new Response(JSON.stringify(out), { status: 200, headers: { "Content-Type": "application/json" } });
     }
-  }
-}
-
-function render() {
-  if (!data) return;
-  if (!P || P.src !== data) { prepare(); P.src = data; if (!view || !custom) view = periodView(); else view = clampView(view); }
-  document.querySelectorAll("#periods button").forEach((b) => b.setAttribute("aria-pressed", String(!custom && b.dataset.p === period)));
-  buildRows(); rowsFor = ""; legendNote(); driftNote(); dailyTable();
-  schedule();
-  foot();
-}
-
-let queued = false;
-function schedule() { if (!queued) { queued = true; requestAnimationFrame(draw); } }
-const cv = document.getElementById("cv"), ov = document.getElementById("ov"), plot = document.getElementById("plot");
-let geo = null;                    // what the last draw used, for the pointer
-function fit(c, w, h, dpr) { if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); } }
-
-function draw() {
-  queued = false;
-  if (!P) return;
-  const dpr = Math.min(window.devicePixelRatio || 1, 3);
-  const W = plot.clientWidth, H = plot.clientHeight;
-  if (W < 50 || H < 50) return;
-  fit(cv, W, H, dpr); fit(ov, W, H, dpr);
-  const ctx = cv.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, W, H);
-  const wide = innerWidth >= 960, font = (wide ? 13 : 12) + "px " + css("--mono");   // axis labels: legible at a glance (owner 2026-10-28)
-  const pw = W - M.L - M.R, ph = H - M.T - M.B;
-  const ia = baseIndex(), i0 = Math.max(0, Math.floor(view.a)), i1 = Math.min(P.n - 1, Math.ceil(view.b));
-  const bases = {};
-  for (const k of shown()) { const b = baseOf(k, ia, i1); if (!Number.isNaN(b)) bases[k] = b; }
-  const keys = Object.keys(bases);
-  const X = (i) => M.L + (i - view.a) / (view.b - view.a) * pw;
-  updateRows();
-  const muted = css("--muted"), lineC = css("--line");
-  ctx.font = font; ctx.fillStyle = css("--axis");
-  if (!keys.length) {
-    ctx.textAlign = "center"; ctx.fillText("nothing to chart in this view", W / 2, H / 2);
-    geo = null; document.getElementById("scale").textContent = ""; return;
-  }
-  // the scale: fitted to what is shown unless the reader has set it; log once growth passes +150%
-  let lo = Infinity, hi = -Infinity;
-  for (const k of keys) {
-    const a = P.arr[k], base = bases[k];
-    for (let i = i0; i <= i1; i++) { const v = a[i] / base; if (v < lo) lo = v; if (v > hi) hi = v; }
-  }
-  let logs, flo, fhi;
-  if (yv) ({ logs, lo: flo, hi: fhi } = yv);
-  else {
-    logs = hi - 1 > 1.5;
-    flo = logs ? Math.log(lo) : lo - 1; fhi = logs ? Math.log(hi) : hi - 1;
-    const pad = (fhi - flo) * 0.06 || 0.01; flo -= pad; fhi += pad;
-  }
-  const f = logs ? (v) => Math.log(v) : (v) => v - 1;      // v: value over the base (1 = no change)
-  const Y = (fv) => M.T + (1 - (fv - flo) / (fhi - flo)) * ph;
-  // horizontal lines and their labels
-  let ticks = [], dp;
-  if (logs) {
-    const cand = [0, -0.1, -0.2, -0.3, -0.5, -0.7];
-    for (let e = -1; e <= 6; e++) for (const m of [1, 2, 5]) cand.push(m * Math.pow(10, e));
-    ticks = cand.filter((r) => Math.log(1 + r) >= flo && Math.log(1 + r) <= fhi).map((r) => [r, Math.log(1 + r)]);
-  } else {
-    const step = niceStep((fhi - flo) / Math.max(3, Math.floor(ph / 70)));
-    dp = stepDecimals(step);
-    for (let v = Math.ceil(flo / step) * step; v <= fhi + 1e-12; v += step) ticks.push([Math.abs(v) < 1e-12 ? 0 : v, v]);
-  }
-  const kept = [];
-  // a tick is kept only if it has room AND its own label: two lines may never read the same number
-  for (const t of ticks.sort((p, q) => (p[0] === 0 ? -1 : q[0] === 0 ? 1 : 0)))
-    if (kept.every((u) => Math.abs(Y(u[1]) - Y(t[1])) >= 18 && pctTick(u[0], dp) !== pctTick(t[0], dp))) kept.push(t);
-  ctx.textAlign = "left"; ctx.textBaseline = "middle";
-  for (const [r, fv] of kept) {
-    const yy = Math.round(Y(fv)) + 0.5;
-    ctx.strokeStyle = lineC; ctx.lineWidth = r === 0 ? 1.2 : 0.6;
-    ctx.beginPath(); ctx.moveTo(M.L, yy); ctx.lineTo(W - M.R, yy); ctx.stroke();
-    ctx.fillText(pctTick(r, dp), W - M.R + 6, yy);
-  }
-  // dates along the bottom, spaced for the width; years, months or days as the span suits
-  const days = (Date.parse(P.D[i1]) - Date.parse(P.D[i0])) / 864e5;
-  const n = Math.max(2, Math.floor(pw / (days > 1100 ? 64 : days > 120 ? 72 : 92)));
-  const lab = (d) => days > 1100 ? d.slice(0, 4) : days > 120 ? new Date(d + "T12:00:00Z").toLocaleDateString(undefined, { month: "short", year: "2-digit", timeZone: "UTC" }) : fmtDate(d);
-  ctx.textBaseline = "alphabetic";
-  let lastLab = "";
-  for (let j = 0; j < n; j++) {
-    const i = Math.round(view.a + j * (view.b - view.a) / (n - 1));
-    if (i < 0 || i >= P.n) continue;
-    const t = lab(P.D[i]); if (t === lastLab) continue; lastLab = t;
-    ctx.textAlign = j === 0 ? "left" : j === n - 1 ? "right" : "center";
-    ctx.fillText(t, X(i), H - 6);
-  }
-  // the lines: clipped to the plot; decimated to the pixel when there are more sessions than pixels
-  ctx.save(); ctx.beginPath(); ctx.rect(M.L, 0, pw, H - M.B + 2); ctx.clip();
-  ctx.lineJoin = "round"; ctx.lineCap = "round";
-  const per = (i1 - i0) / pw;
-  for (const k of [...keys].reverse()) {
-    const a = P.arr[k], base = bases[k];
-    ctx.strokeStyle = css(COLORS[k]);
-    ctx.lineWidth = k === "account" || k === "launched" ? 2.2 : k === "spy" || k === "qqq" ? 1.1 : 1.6;
-    ctx.setLineDash(k === "qqq" ? [3, 3] : []);
-    ctx.beginPath();
-    let started = false;
-    if (per <= 2) {
-      for (let i = i0; i <= i1; i++) {
-        const v = a[i]; if (Number.isNaN(v)) { started = false; continue; }
-        const x = X(i), y = Y(f(v / base));
-        started ? ctx.lineTo(x, y) : ctx.moveTo(x, y); started = true;
-      }
-    } else {
-      let col = -1, fy = 0, mn = 0, mx = 0, ly = 0, cx = 0;
-      const flush = () => { if (col < 0) return; started ? ctx.lineTo(cx, fy) : ctx.moveTo(cx, fy); ctx.lineTo(cx, mn); ctx.lineTo(cx, mx); ctx.lineTo(cx, ly); started = true; };
-      for (let i = i0; i <= i1; i++) {
-        const v = a[i]; if (Number.isNaN(v)) continue;
-        const x = X(i), c = Math.floor(x), y = Y(f(v / base));
-        if (c !== col) { flush(); col = c; cx = x; fy = mn = mx = ly = y; }
-        else { if (y < mn) mn = y; if (y > mx) mx = y; ly = y; }
-      }
-      flush();
-    }
-    ctx.stroke();
-    if (P.first[k] > view.a) {                                   // no record yet: a dotted 0% up to its first day
-      ctx.save(); ctx.setLineDash([2, 4]); ctx.globalAlpha = 0.7; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(M.L, Y(f(1))); ctx.lineTo(X(P.first[k]), Y(f(1))); ctx.stroke(); ctx.restore();
-    }
-    const e = Math.min(P.last[k], i1);
-    if (e >= i0 && e <= view.b) { ctx.setLineDash([]); ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(X(e), Y(f(a[e] / base)), k === "account" || k === "launched" ? 3 : 2.2, 0, 7); ctx.fill(); }
-  }
-  ctx.restore();
-  geo = { W, H, pw, ph, X, Y, f, ia, i0, i1, keys, bases, dpr, flo, fhi, logs };
-  document.getElementById("scale").textContent = (logs ? "log scale" : "") + (yv ? (logs ? " · " : "") + "scale set by you" : "");
-  document.getElementById("reset").hidden = !(custom || yv);
-  if (hover) drawHover(hover.x);
-}
-function niceStep(raw) { const p = Math.pow(10, Math.floor(Math.log10(raw))); const n = raw / p; return (n < 1.5 ? 1 : n < 3.5 ? 2 : n < 7.5 ? 5 : 10) * p; }
-
-// ─── THE READOUT: hover, or press on a phone, to see every line's growth to that day ──────────────────────────────
-let hover = null;
-const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; plot.appendChild(tip);
-function drawHover(x) {
-  const ctx = ov.getContext("2d");
-  ctx.setTransform(geo ? geo.dpr : 1, 0, 0, geo ? geo.dpr : 1, 0, 0);
-  ctx.clearRect(0, 0, ov.width, ov.height);
-  if (!geo || x == null || x < M.L || x > geo.W - M.R) { tip.hidden = true; return; }
-  const i = Math.max(geo.i0, Math.min(geo.i1, Math.round(view.a + (x - M.L) / geo.pw * (view.b - view.a))));
-  const xx = geo.X(i);
-  ctx.strokeStyle = css("--muted"); ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(Math.round(xx) + 0.5, M.T); ctx.lineTo(Math.round(xx) + 0.5, geo.H - M.B); ctx.stroke();
-  const names = Object.fromEntries(data.lines.map((l) => [l.key, l.name]));
-  const rows = [];
-  for (const k of geo.keys) {
-    const a = P.arr[k], v = a[i]; if (Number.isNaN(v)) continue;
-    const r = v / geo.bases[k];
-    const g = measure === "mdd" ? { r: maxDD(k, ownStart(k, geo.ia), i).dd, note: "" } : shownGrowth(v / a[ownStart(k, geo.ia)], P.D[geo.ia], P.D[i]);
-    rows.push([k, g.r, g.note === "a year" ? "/yr" : ""]);
-    ctx.fillStyle = css(COLORS[k]); ctx.beginPath(); ctx.arc(xx, geo.Y(geo.f(r)), 3, 0, 7); ctx.fill();
-  }
-  rows.sort((p, q) => q[1] - p[1]);
-  tip.innerHTML = `<div class="d">${fmtLong(P.D[i])}</div>` + rows.map(([k, r, u]) => `<div><i style="background:var(${COLORS[k]})"></i>${names[k]} ${pct(r)}${u}</div>`).join("");
-  tip.hidden = false;
-  tip.style.left = (xx > geo.W / 2 ? xx - tip.offsetWidth - 14 : xx + 14) + "px";
-}
-function clearHover() { hover = null; drawHover(null); }
-
-// ─── ZOOM, PAN, SCROLL, RESET ───────────────────────────────────────────────────────────────────────────────────────
-// wheel or trackpad pinch: zoom the dates around the pointer (over the % axis: zoom the scale); sideways scroll or
-// shift+wheel: pan; drag: pan (on the % axis: stretch the scale; on the date axis: zoom); two fingers: pinch to zoom;
-// double-click (double-tap) the date axis, the % axis or the plot to reset that part, or "Reset view" for all of it
-function zone(x, y) { return !geo ? "plot" : x > geo.W - M.R ? "y" : y > geo.H - M.B ? "x" : "plot"; }
-function idxAt(x) { return view.a + (x - M.L) / (geo ? geo.pw : 1) * (view.b - view.a); }
-function setView(v) { view = clampView(v); if (!custom) { custom = true; document.querySelectorAll("#periods button").forEach((b) => b.setAttribute("aria-pressed", "false")); } schedule(); }
-function zoomX(c, k) { setView({ a: c - (c - view.a) * k, b: c + (view.b - c) * k }); }
-function panX(dxPx) { const s = dxPx / geo.pw * (view.b - view.a); setView({ a: view.a - s, b: view.b - s }); }
-function scaleNow() { return yv || (geo && { lo: geo.flo, hi: geo.fhi, logs: geo.logs }); }
-function zoomY(yPx, k) {
-  const s = scaleNow(); if (!s) return;
-  const c = s.lo + (1 - (yPx - M.T) / geo.ph) * (s.hi - s.lo);
-  yv = { logs: s.logs, lo: c - (c - s.lo) * k, hi: c + (s.hi - c) * k }; schedule();
-}
-function resetX() { custom = false; view = periodView(); render(); }
-function resetY() { yv = null; schedule(); }
-function resetZone(z) { if (z === "y") resetY(); else if (z === "x") resetX(); else { yv = null; resetX(); } }
-
-cv.addEventListener("wheel", (e) => {
-  if (!geo) return;
-  e.preventDefault();
-  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY, dx = e.deltaMode === 1 ? e.deltaX * 16 : e.deltaX;
-  if (zone(x, y) === "y") return zoomY(y, Math.exp(dy * 0.002));
-  if (!e.ctrlKey && (Math.abs(dx) > Math.abs(dy) || e.shiftKey)) return panX(-(e.shiftKey && !dx ? dy : dx));
-  zoomX(idxAt(x), Math.exp(dy * (e.ctrlKey ? 0.01 : 0.0018)));
-}, { passive: false });
-
-const ptrs = new Map();
-let drag = null, pinch = null, lastTap = { t: 0, z: "" };
-cv.addEventListener("pointerdown", (e) => {
-  if (!geo) return;
-  cv.setPointerCapture(e.pointerId);
-  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  ptrs.set(e.pointerId, { x, y });
-  if (ptrs.size === 2) {
-    const [p, q] = [...ptrs.values()];
-    pinch = { d: Math.hypot(p.x - q.x, p.y - q.y) || 1, c: idxAt((p.x + q.x) / 2), v: { ...view } }; drag = null; clearHover(); return;
-  }
-  drag = { z: zone(x, y), x, y, px: x, py: y, moved: false, touch: e.pointerType !== "mouse" };
-  if (drag.touch) { hover = { x }; drawHover(x); }
-});
-cv.addEventListener("pointermove", (e) => {
-  const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x, y });
-  if (pinch && ptrs.size === 2) {
-    const [p, q] = [...ptrs.values()];
-    const k = pinch.d / (Math.hypot(p.x - q.x, p.y - q.y) || 1);
-    view = pinch.v; zoomX(pinch.c, k); return;
-  }
-  if (drag) {
-    const dx = x - drag.px, dy = y - drag.py;
-    if (!drag.moved && Math.hypot(x - drag.x, y - drag.y) > 5) { drag.moved = true; cv.classList.add("grab"); if (!drag.touch) clearHover(); }
-    if (drag.moved) {
-      if (drag.z === "y") zoomY(drag.y, Math.exp(dy * 0.01));
-      else if (drag.z === "x") zoomX(idxAt(drag.x), Math.exp(-dx * 0.006));
-      else if (drag.touch && Math.abs(y - drag.y) > Math.abs(x - drag.x) * 1.5) { hover = { x }; drawHover(x); }   // a press moving along: read
-      else { panX(dx); if (drag.touch) clearHover(); }
-    }
-    drag.px = x; drag.py = y; return;
-  }
-  if (e.pointerType === "mouse") { hover = { x }; drawHover(x); }
-});
-function endPtr(e) {
-  ptrs.delete(e.pointerId);
-  if (ptrs.size < 2) pinch = null;
-  if (drag && !drag.moved && drag.touch) {
-    const now = Date.now();
-    if (now - lastTap.t < 320 && lastTap.z === drag.z) { resetZone(drag.z); lastTap = { t: 0, z: "" }; clearHover(); }
-    else lastTap = { t: now, z: drag.z };
-  }
-  if (drag && drag.touch && drag.moved) clearHover();
-  drag = null; cv.classList.remove("grab");
-}
-cv.addEventListener("pointerup", endPtr);
-cv.addEventListener("pointercancel", (e) => { endPtr(e); clearHover(); });
-cv.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse" && !drag) clearHover(); });
-cv.addEventListener("dblclick", (e) => { const r = cv.getBoundingClientRect(); resetZone(zone(e.clientX - r.left, e.clientY - r.top)); });
-cv.addEventListener("keydown", (e) => {
-  if (!geo) return;
-  const c = (view.a + view.b) / 2, step = geo.pw / 8;
-  if (e.key === "+" || e.key === "=") zoomX(c, 0.8);
-  else if (e.key === "-" || e.key === "_") zoomX(c, 1.25);
-  else if (e.key === "ArrowLeft") panX(step);
-  else if (e.key === "ArrowRight") panX(-step);
-  else if (e.key === "0" || e.key === "Escape") resetZone("plot");
-  else return;
-  e.preventDefault();
-});
-document.getElementById("reset").addEventListener("click", () => resetZone("plot"));
-function paintMeasure() { document.querySelectorAll("#measure button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === measure))); }
-document.getElementById("measure").addEventListener("click", (e) => {
-  const b = e.target.closest("button"); if (!b) return;
-  measure = b.dataset.m; try { localStorage.setItem("makb.measure", measure); } catch {}
-  paintMeasure(); rowsFor = ""; useMeasure(); yv = null; if (P) { updateRows(); schedule(); } if (hover) drawHover(hover.x);
-});
-paintMeasure();
-new ResizeObserver(() => schedule()).observe(plot);
-document.getElementById("hint").textContent = matchMedia("(pointer: coarse)").matches
-  ? "Pinch to zoom · drag sideways to pan · press to read · double-tap an axis to reset"
-  : "Scroll to zoom · drag to pan · scroll on the % axis to zoom it · double-click an axis to reset";
-
-function foot() {
-  // the notes under the rows are gone (owner 2026-10-27); only something that needs attention is shown: prices that
-  // have stopped, the planner or the mini not updating, a book overdue
-  const el = document.getElementById("foot");
-  const pt = new Date(data.priceTime);
-  const open = (Date.now() - pt.getTime()) / 60000 < 20;
-  document.getElementById("state").classList.toggle("open", open);
-  document.getElementById("stateText").textContent = open ? "live" : "market closed";
-  el.textContent = "";
-  const warn = (t) => { const d = document.createElement("div"); d.className = "warn"; d.textContent = t; el.appendChild(d); };
-  const synced = data.plannerSyncedAt ? new Date(data.plannerSyncedAt) : null;
-  if (synced && (Date.now() - synced.getTime()) / 864e5 > 35) warn(`Planner last synced ${synced.toLocaleDateString(undefined, { day: "numeric", month: "short" })} — open the planner so new holdings reach this page`);
-  const ss = data.strategiesSyncedAt ? new Date(data.strategiesSyncedAt) : null;
-  if (ss && (Date.now() - ss.getTime()) / 864e5 > 4) warn(`Strategies last updated by the Mac mini ${ss.toLocaleDateString(undefined, { day: "numeric", month: "short" })} — the mini has stopped updating them`);
-  for (const t of data.overdue || []) warn(t);
-  el.hidden = !el.childElementCount;
-}
-
-// THE LIVE BALANCE: published encrypted (balance.enc: OpenSSL "enc -pbkdf2" format, AES-256-CBC, key and IV from
-// PBKDF2-SHA256 over the owner's passcode). Unlocked here with Web Crypto; the passcode stays on this device only.
-const PASSKEY = "makb.pass";
-let balEnc = null, bal = null, balFor = null, balErr = "";
-const getPass = () => { try { return localStorage.getItem(PASSKEY); } catch { return null; } };
-const usd = (x) => x == null ? "–" : "US$" + Number(x).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-async function unlock(enc, pass) {
-  const raw = Uint8Array.from(atob(enc.data), (c) => c.charCodeAt(0));
-  if (new TextDecoder().decode(raw.slice(0, 8)) !== "Salted__") throw new Error("format");
-  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveBits"]);
-  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt: raw.slice(8, 16), iterations: enc.iter, hash: "SHA-256" }, base, 384));
-  const key = await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-CBC", false, ["decrypt"]);
-  const plain = await crypto.subtle.decrypt({ name: "AES-CBC", iv: bits.slice(32, 48) }, key, raw.slice(16));
-  const b = JSON.parse(new TextDecoder().decode(plain));
-  if (b.pulse !== "balance") throw new Error("wrong");
-  return b;
-}
-function renderBal() {
-  const el = document.getElementById("bal");
-  if (!balEnc) { el.hidden = true; return; }
-  el.hidden = false; el.textContent = "";
-  const row = document.createElement("div"); row.className = "row you";
-  const name = document.createElement("span"); name.className = "name"; name.textContent = "Account balance";
-  const sub = document.createElement("span"); sub.className = "sub";
-  const val = document.createElement("span"); val.className = "val";
-  if (bal) {
-    val.textContent = usd(bal.net_liq);
-    sub.textContent = "cash " + usd(bal.cash) + " · as of " + (bal.at_nz || "?").replace(/^\d{4}-/, "").replace(/ NZ[SD]T$/, " NZ") + (bal.stale ? " · STALE" : "");
-    if (bal.stale) sub.className = "sub warn";
-    const lk = document.createElement("button"); lk.className = "lock"; lk.type = "button"; lk.textContent = "lock";
-    lk.addEventListener("click", () => { try { localStorage.removeItem(PASSKEY); } catch {} bal = null; balFor = null; renderBal(); });
-    sub.appendChild(lk);
-    name.appendChild(sub);
-  } else {
-    val.className = "val none"; val.textContent = "locked";
-    const f = document.createElement("form");
-    const i = document.createElement("input"); i.type = "password"; i.autocomplete = "current-password"; i.placeholder = "Passcode"; i.setAttribute("aria-label", "Passcode");
-    const b = document.createElement("button"); b.type = "submit"; b.textContent = "Unlock";
-    f.append(i, b);
-    f.addEventListener("submit", async (e) => {
-      e.preventDefault(); b.disabled = true; b.textContent = "…";
-      try { bal = await unlock(balEnc, i.value); balFor = balEnc.data; balErr = ""; try { localStorage.setItem(PASSKEY, i.value); } catch {} }
-      catch { balErr = "Wrong passcode"; }
-      renderBal();
-    });
-    if (balErr) { sub.className = "sub warn"; sub.textContent = balErr; name.appendChild(sub); }
-    name.appendChild(f);
-  }
-  row.append(name, val); el.appendChild(row);
-}
-async function loadBal() {
-  try {
-    const r = await fetch("balance.enc?t=" + Date.now(), { cache: "no-store" });
-    balEnc = r.ok ? await r.json() : null;
-  } catch { /* offline: keep what is shown */ }
-  const pass = getPass();
-  if (balEnc && pass && balFor !== balEnc.data) {
-    try { bal = await unlock(balEnc, pass); balFor = balEnc.data; balErr = ""; }
-    catch { bal = null; balFor = null; balErr = "Passcode changed: unlock again"; try { localStorage.removeItem(PASSKEY); } catch {} }
-  }
-  renderBal();
-}
-
-// THE HOLDINGS (holdings.json, from the Mac mini: the last Schwab statement, replaced by each Positions report)
-async function loadHold() {
-  const el = document.getElementById("hold");
-  try {
-    const r = await fetch("holdings.json?t=" + Date.now(), { cache: "no-store" });
-    if (!r.ok) throw new Error(r.status);
-    const h = await r.json(), top = h.holdings.length ? h.holdings[0].w : 1;
+    return real(u, o);
+  };
+  // THE HOLDINGS: the Mac mini's holdings.json; flagged when they are older than the holdings the Makarios line carries
+  window.__makHold = async () => {
+    const el = document.getElementById("hold"); if (!el) return;
+    const fd = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
     const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-    el.innerHTML = `<h2>Holdings · at the close of ${fmtLong(h.as_of)}, by value</h2><table><tbody>` +
-      h.holdings.map((x) => `<tr><td>${esc(x.n)}</td><td class="t">${esc(x.t)}</td><td class="w">${(x.w * 100).toFixed(1)}%</td>` +
-        `<td class="b"><div class="bar" style="width:${Math.max(3, 100 * x.w / top)}%"></div></td></tr>`).join("") +
-      (h.cash > 0.0005 ? `<tr><td>Cash</td><td class="t"></td><td class="w">${(h.cash * 100).toFixed(1)}%</td><td class="b"></td></tr>` : "") +
-      `</tbody></table>`;
-    el.hidden = false;
-  } catch { /* offline or not yet published: the section stays as it was */ }
-}
-async function load() {
-  loadHold();
+    try {
+      const r = await real("holdings.json?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const h = await r.json(), top = h.holdings.length ? h.holdings[0].w : 1, m = window.__mak || {};
+      const stale = m.holdingsOn && h.holdings_from && h.holdings_from < m.holdingsOn;
+      el.innerHTML = `<h2>Holdings · at the close of ${fd(h.as_of)}, by value</h2>` +
+        (stale ? `<div class="stale">These holdings are from ${fd(h.holdings_from)}; the Makarios line holds those of ${fd(m.holdingsOn)}. They update with the next daily run.</div>` : "") +
+        `<table><tbody>` + h.holdings.map((x) => `<tr><td>${esc(x.n)}</td><td class="t">${esc(x.t)}</td><td class="w">${(x.w * 100).toFixed(1)}%</td>` +
+          `<td class="b"><div class="bar" style="width:${Math.max(3, 100 * x.w / top)}%"></div></td></tr>`).join("") +
+        (h.cash > 0.0005 ? `<tr><td>Cash</td><td class="t"></td><td class="w">${(h.cash * 100).toFixed(1)}%</td><td class="b"></td></tr>` : "") + `</tbody></table>`;
+      el.hidden = false;
+    } catch (e) { /* offline or not yet published: the section stays as it was */ }
+  };
+}})(${JSON.stringify(PULSE)}, ${JSON.stringify(FROM)});`;
+
+(async () => {
+  let html;
   try {
-    const r = await fetch("/pulse-b2dedc/data.json?t=" + Date.now(), { cache: "no-store" });
+    const r = await fetch(PULSE + "index.html?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error(r.status);
-    const all = await r.json(), keep = ["makarios", "spy"], from = "2025-04-30";
-    const lines = keep.map((k) => all.lines.find((l) => l.key === k)).filter(Boolean)
-      .map((l) => ({ key: l.key, name: l.name, series: l.series.filter((p) => p[0] >= from) }));
-    if (lines.length !== keep.length) throw new Error("Pulse has no Makarios or SPY line");
-    data = { updatedAt: all.updatedAt, priceTime: all.priceTime, strategiesSyncedAt: all.strategiesSyncedAt, allStart: from,
-      holdingsOn: { makarios: (all.holdingsOn || {}).makarios }, overdue: (all.overdue || []).filter((t) => t.includes("Makarios")), lines };
-    render();
-  } catch (e) {
-    document.getElementById("stateText").textContent = data ? "offline · showing last" : "could not load";
-  }
-}
-document.getElementById("periods").addEventListener("click", (e) => {
-  const b = e.target.closest("button"); if (!b) return;
-  period = b.dataset.p; try { localStorage.setItem("makb.period", period); } catch {}
-  custom = false; yv = null; if (P) view = periodView(); clearHover();
-  render();
-});
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
-setInterval(load, 5 * 60 * 1000);
-load();
+    html = await r.text();
+  } catch (e) { document.getElementById("msg").textContent = "The page could not be loaded. Please try again shortly."; return; }
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const $ = (q) => doc.querySelector(q);
+  const set = (q, f) => { const e = $(q); if (e) f(e); };
+  doc.title = "Makarios vs SPY";
+  set('meta[name="apple-mobile-web-app-title"]', (e) => e.setAttribute("content", "Makarios"));
+  doc.querySelectorAll('link[rel="manifest"], link[rel="apple-touch-icon"], link[rel="icon"]').forEach((e) => e.remove());
+  for (const rel of ["icon", "apple-touch-icon"]) { const l = doc.createElement("link"); l.rel = rel; l.href = "logo.png"; doc.head.append(l); }
+  const fonts = doc.createElement("link"); fonts.rel = "stylesheet";
+  fonts.href = "https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500&display=swap"; doc.head.append(fonts);
+  const css = doc.createElement("style"); css.textContent = MAKARIOS_CSS; doc.head.append(css);
+  const shim = doc.createElement("script"); shim.textContent = SHIM; doc.head.prepend(shim);
+  set("header h1", (h) => {
+    const b = doc.createElement("div"); b.className = "brand";
+    b.innerHTML = '<img src="logo.png" alt="Makarios crest"><div><h1>Makarios</h1><div class="tag">Performance against SPY since inception, 16 May 2025</div></div>';
+    h.replaceWith(b);
+  });
+  set("#periods", (n) => {
+    n.innerHTML = [["day", "Today"], ["1m", "1M"], ["3m", "3M"], ["ytd", "YTD"], ["1y", "1Y"], ["mak", "Since inception"]]
+      .map(([p, t]) => `<button data-p="${p}"${p === "mak" ? ' title="Since 16 May 2025"' : ""}>${t}</button>`).join("");
+  });
+  // Pulse's own parts this page does not show are HIDDEN, never removed: Pulse's script still finds every element it expects
+  set("#foot", (f) => {
+    const h = doc.createElement("section"); h.className = "board hold"; h.id = "hold"; h.hidden = true; h.setAttribute("aria-label", "Holdings");
+    f.before(h);
+    const p = doc.createElement("p"); p.className = "disc";
+    p.textContent = "Past performance is not a reliable indicator of future results. Makarios is the strategy's time-weighted return, rebuilt " +
+      "from the custodian's records and each day's closing prices (the latest prices during the US session); deposits and withdrawals do " +
+      "not move it, and money held in the Schwab US Treasury money fund is outside the strategy. SPY is its total return, dividends " +
+      "reinvested. For information only; not an offer to buy or sell any security.";
+    f.after(p);
+  });
+  document.open();
+  document.write("<!doctype html>\n" + doc.documentElement.outerHTML);
+  document.close();
+})();
 </script>
 </body>
 </html>
