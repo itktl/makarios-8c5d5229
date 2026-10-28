@@ -26,6 +26,10 @@ h1 { font: 500 34px/1.1 "EB Garamond", Georgia, serif; margin: 0; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .tabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); padding: 5px 12px; border-radius: 999px; font: inherit; font-size: 13px; cursor: pointer; }
 .tabs button[aria-pressed="true"] { border-color: var(--gold); color: var(--ink); }
+.bar-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+.seg button { border: 0; background: transparent; color: var(--muted); padding: 5px 12px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
 .stat { background: var(--card); border-top: 2px solid var(--gold); border-radius: 4px; padding: 14px 14px 12px; }
 .stat .v { font: 400 32px/1.1 "EB Garamond", Georgia, serif; font-variant-numeric: lining-nums tabular-nums; }
@@ -53,12 +57,15 @@ td.w, th.w { text-align: right; }
     <div><h1>Makarios</h1><div class="tag">Performance against SPY, updated daily</div></div>
     <div class="asof">Inception <b>16 May 2025</b><br><span id="asof"></span></div>
   </header>
-  <div class="eyebrow">Return</div>
-  <div class="tabs" id="tabs" role="group" aria-label="Period"></div>
+  <div class="eyebrow" id="eyebrow">Return</div>
+  <div class="bar-row">
+    <div class="tabs" id="tabs" role="group" aria-label="Period"></div>
+    <div class="seg" id="meas" role="group" aria-label="Measure"></div>
+  </div>
   <div class="stats">
-    <div class="stat"><div class="v" id="vm">–</div><div class="k"><span class="dot" style="background:var(--mak)"></span>Makarios</div></div>
-    <div class="stat"><div class="v" id="vs">–</div><div class="k"><span class="dot" style="background:var(--spy)"></span>SPY (total return)</div></div>
-    <div class="stat"><div class="v" id="vd">–</div><div class="k">Excess return vs SPY</div></div>
+    <div class="stat"><div class="v" id="vm">–</div><div class="k"><span class="dot" style="background:var(--mak)"></span><span id="km">Makarios</span></div></div>
+    <div class="stat"><div class="v" id="vs">–</div><div class="k"><span class="dot" style="background:var(--spy)"></span><span id="ks">SPY (total return)</span></div></div>
+    <div class="stat"><div class="v" id="vd">–</div><div class="k" id="kd">Excess return vs SPY</div></div>
   </div>
   <div class="sub" id="vp"></div>
   <section class="card"><div id="chart"></div></section>
@@ -68,7 +75,7 @@ td.w, th.w { text-align: right; }
     <table><thead><tr><th>Company</th><th>Ticker</th><th class="w">Weight</th><th style="width:28%"></th></tr></thead><tbody id="hold"></tbody></table>
   </section>
   <p class="note">Past performance is not a reliable indicator of future results. Makarios is the strategy's time-weighted return from
-    the close of its inception day, 16 May 2025, rebuilt daily from the custodian's records and each day's closing prices; deposits and
+    the close of its inception day, 16 May 2025, rebuilt daily from the custodian's records and each day's closing prices (the latest prices during the US session); deposits and
     withdrawals do not move it, and money held in the Schwab US Treasury money fund is outside the strategy. SPY is its total return,
     dividends reinvested. For information only; not an offer to buy or sell any security.</p>
 </main>
@@ -76,9 +83,14 @@ td.w, th.w { text-align: right; }
 const pct = (x, d = 2) => (x >= 0 ? "+" : "") + (x * 100).toFixed(d) + "%";
 const pp = x => (x >= 0 ? "+" : "") + (x * 100).toFixed(2) + " pts";
 const fmtDate = s => new Date(s + "T12:00:00Z").toLocaleDateString("en-NZ", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
+// data.json: the store's closes (the Mac mini, daily). live.json: carried on from the last of them to the latest prices
+// through the day (as Portfolio Pulse does); used only when it starts from that same close.
+Promise.all([fetch("data.json?" + Date.now()).then(r => r.json()), fetch("live.json?" + Date.now()).then(r => r.ok ? r.json() : null).catch(() => null)]).then(([D, L]) => {
+  const closes = D.as_of;
+  if (L && L.base === D.as_of && L.dates.length) { D.dates = D.dates.concat(L.dates); D.makarios = D.makarios.concat(L.makarios); D.spy = D.spy.concat(L.spy); }
   const N = D.dates.length, last = D.dates[N - 1];
-  document.getElementById("asof").innerHTML = "Performance to <b>" + fmtDate(last) + "</b>";
+  const open = L && L.at && last > closes && (Date.now() - Date.parse(L.at)) < 20 * 60000 && new Date(L.at).getUTCHours() < 20;
+  document.getElementById("asof").innerHTML = "Performance to <b>" + fmtDate(last) + "</b>" + (open ? " (live)" : "");
   const back = (months, ytd) => {
     if (ytd) return last.slice(0, 4) + "-01-01";
     const d = new Date(last + "T12:00:00Z"); d.setUTCMonth(d.getUTCMonth() - months); return d.toISOString().slice(0, 10);
@@ -94,19 +106,62 @@ fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
   let on = "Since inception";
   try { on = localStorage.getItem("mak-period") || on; } catch (e) {}
   if (!periods.some(p => p[0] === on)) on = "Since inception";
+  // THE MEASURES, as Portfolio Pulse: Return, CAGR (annualised; a period under a year is shown as its plain return), vs SPY
+  // (Makarios over SPY - SPY is the yardstick at 0%), Max DD (the largest fall from a closing high to a later close, inside
+  // the period, with its dates and whether it has recovered)
+  const measures = ["Return", "CAGR", "vs SPY", "Max DD"];
+  let meas = "Return";
+  try { meas = localStorage.getItem("mak-measure") || meas; } catch (e) {}
+  if (!measures.includes(meas)) meas = "Return";
+  const maxdd = (v, dates) => {
+    let peak = v[0], pi = 0, worst = 0, wp = 0, wt = 0; const under = v.map(x => 0);
+    v.forEach((x, i) => { if (x > peak) { peak = x; pi = i; } const d = x / peak - 1; under[i] = d; if (d < worst) { worst = d; wp = pi; wt = i; } });
+    const rec = worst < 0 && v.slice(wt).some(x => x >= v[wp]);
+    return { worst, under, from: dates[wp], to: dates[wt], rec };
+  };
   const draw = () => {
     const [, a] = periods.find(p => p[0] === on);
     [...tabs.children].forEach(b => b.setAttribute("aria-pressed", b.textContent === on));
-    const m = D.makarios.slice(a).map(v => v / D.makarios[a] - 1), s = D.spy.slice(a).map(v => v / D.spy[a] - 1);
+    [...document.getElementById("meas").children].forEach(b => b.setAttribute("aria-pressed", b.textContent === meas));
+    document.getElementById("eyebrow").textContent = meas === "Max DD" ? "Largest fall" : meas === "vs SPY" ? "Against SPY" : meas === "CAGR" ? "Annual growth rate" : "Return";
+    const dates = D.dates.slice(a), mv = D.makarios.slice(a), sv = D.spy.slice(a);
+    const m = mv.map(v => v / mv[0] - 1), s = sv.map(v => v / sv[0] - 1);
     const rm = m[m.length - 1], rs = s[s.length - 1];
-    const set = (id, v, txt) => { const e = document.getElementById(id); e.textContent = txt; e.className = "v" + (id === "vd" ? (v >= 0 ? " up" : " down") : ""); };
-    set("vm", rm, pct(rm)); set("vs", rs, pct(rs)); set("vd", rm - rs, pp(rm - rs));
     const yrs = (new Date(last) - new Date(D.dates[a])) / 31557600000;
-    document.getElementById("vp").textContent = on === "Since inception" && yrs > 1
-      ? "Annualised: Makarios " + pct(Math.pow(1 + rm, 1 / yrs) - 1, 1) + ", SPY " + pct(Math.pow(1 + rs, 1 / yrs) - 1, 1)
-      : "From the close of " + fmtDate(D.dates[a]);
-    chart(D.dates.slice(a), m, s);
+    const set = (id, txt, cls) => { const e = document.getElementById(id); e.textContent = txt; e.className = "v" + (cls || ""); };
+    const tone = v => v >= 0 ? " up" : " down";
+    const kd = document.getElementById("kd"), vd = document.getElementById("vd").parentElement;
+    vd.style.visibility = "visible";
+    document.getElementById("km").textContent = "Makarios"; document.getElementById("ks").textContent = "SPY (total return)";
+    let sub = "From the close of " + fmtDate(D.dates[a]);
+    if (meas === "Return") {
+      set("vm", pct(rm)); set("vs", pct(rs)); set("vd", pp(rm - rs), tone(rm - rs)); kd.textContent = "Excess return vs SPY";
+      chart(dates, [[s, "var(--spy)", 2], [m, "var(--mak)", 2.4]]);
+    } else if (meas === "CAGR") {
+      const ann = yrs >= 1, cm = ann ? Math.pow(1 + rm, 1 / yrs) - 1 : rm, cs = ann ? Math.pow(1 + rs, 1 / yrs) - 1 : rs;
+      set("vm", pct(cm) + (ann ? "" : "")); set("vs", pct(cs)); set("vd", pp(cm - cs), tone(cm - cs)); kd.textContent = "Excess a year vs SPY";
+      if (!ann) sub += " · under a year, so not annualised: these are the period's own returns";
+      else sub += " · " + yrs.toFixed(1) + " years, compounded";
+      chart(dates, [[s, "var(--spy)", 2], [m, "var(--mak)", 2.4]]);
+    } else if (meas === "vs SPY") {
+      const rel = mv.map((v, i) => (v / mv[0]) / (sv[i] / sv[0]) - 1), r = rel[rel.length - 1];
+      set("vm", pct(r), tone(r)); set("vs", "0%"); document.getElementById("ks").textContent = "SPY, the yardstick";
+      document.getElementById("km").textContent = "Makarios against SPY"; vd.style.visibility = "hidden";
+      chart(dates, [[rel.map(() => 0), "var(--spy)", 1.4], [rel, "var(--mak)", 2.4]]);
+    } else {
+      const dm = maxdd(mv, dates), ds = maxdd(sv, dates);
+      set("vm", dm.worst ? pct(dm.worst) : "0%", dm.worst ? " down" : ""); set("vs", ds.worst ? pct(ds.worst) : "0%", ds.worst ? " down" : "");
+      set("vd", pp(dm.worst - ds.worst), tone(dm.worst - ds.worst)); kd.textContent = "Makarios fell less (+) or more (−)";
+      sub = dm.worst ? "Makarios's largest fall: " + fmtDate(dm.from) + " → " + fmtDate(dm.to) + (dm.rec ? ", since recovered" : ", not yet recovered") : "Makarios had no fall in this period";
+      chart(dates, [[ds.under, "var(--spy)", 2], [dm.under, "var(--mak)", 2.4]]);
+    }
+    document.getElementById("vp").textContent = sub;
   };
+  measures.forEach(name => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = name;
+    b.onclick = () => { meas = name; try { localStorage.setItem("mak-measure", meas); } catch (e) {} draw(); };
+    document.getElementById("meas").appendChild(b);
+  });
   periods.forEach(([name]) => {
     const b = document.createElement("button"); b.type = "button"; b.textContent = name;
     b.onclick = () => { on = name; try { localStorage.setItem("mak-period", on); } catch (e) {} draw(); };
@@ -124,19 +179,20 @@ fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>Cash</td><td></td><td class="w">${(D.cash * 100).toFixed(1)}%</td><td></td>`; body.appendChild(tr);
   }
-  document.getElementById("hfrom").textContent = "As held on " + fmtDate(last) + ", valued at that day's close";
+  document.getElementById("hfrom").textContent = "As held at the close of " + fmtDate(closes) + ", by value";
 }).catch(() => { document.getElementById("asof").textContent = "The data could not be loaded. Please try again shortly."; });
 
-function chart(dates, m, s) {
+function chart(dates, lines) {
   const W = 820, H = 300, L = 46, R = 10, T = 10, B = 26, n = dates.length;
-  const all = m.concat(s); let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
+  const all = lines.flatMap(l => l[0]); let lo = Math.min(0, ...all), hi = Math.max(0, ...all);
   const pad = (hi - lo) * 0.08 || 0.01; lo -= pad; hi += pad;
   const x = i => L + (W - L - R) * (n < 2 ? 0 : i / (n - 1)), y = v => T + (H - T - B) * (hi - v) / (hi - lo);
-  const step = [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.5].find(t => (hi - lo) / t <= 6) || 1;
+  const step = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.25, 0.5].find(t => (hi - lo) / t <= 6) || 1;
+  const dp = Math.max(0, Math.ceil(-Math.log10(step * 100) - 1e-9)) + (Math.abs(step * 100 / Math.pow(10, Math.floor(Math.log10(step * 100)))) % 1 ? 1 : 0);
   let g = "";
   for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
     g += `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"${Math.abs(v) < 1e-9 ? ' style="stroke:var(--muted);stroke-dasharray:3 3"' : ""}/>`;
-    g += `<text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${(v * 100).toFixed(step < 0.01 ? 1 : 0)}%</text>`;
+    g += `<text class="axis" x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${(Math.abs(v) < 1e-12 ? 0 : v * 100).toFixed(dp)}%</text>`;
   }
   // date labels: up to five, never the same session twice (a two-session view has just its two ends)
   const ticks = Math.min(4, n - 1), seen = new Set();
@@ -147,10 +203,8 @@ function chart(dates, m, s) {
   }
   const path = v => v.map((p, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(p).toFixed(1)).join("");
   document.getElementById("chart").innerHTML =
-    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Makarios and SPY returns over the period">${g}` +
-    `<path d="${path(s)}" fill="none" stroke="var(--spy)" stroke-width="2"/>` +
-    `<path d="${path(m)}" fill="none" stroke="var(--mak)" stroke-width="2.4"/>` +
-    `<circle cx="${x(n - 1)}" cy="${y(s[n - 1])}" r="4" fill="var(--spy)"/><circle cx="${x(n - 1)}" cy="${y(m[n - 1])}" r="4" fill="var(--mak)"/></svg>`;
+    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Makarios and SPY over the period">${g}` +
+    lines.map(([v, c, w]) => `<path d="${path(v)}" fill="none" stroke="${c}" stroke-width="${w}"/><circle cx="${x(n - 1)}" cy="${y(v[n - 1])}" r="4" fill="${c}"/>`).join("") + `</svg>`;
 }
 </script>
 </body>

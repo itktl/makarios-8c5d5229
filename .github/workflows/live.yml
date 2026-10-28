@@ -1,0 +1,19 @@
+name: live
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 13-20 * * 1-5"   # every 15 minutes across the US session (UTC), as Portfolio Pulse
+    - cron: "15 21 * * 1-5"        # once after the close
+concurrency: { group: live, cancel-in-progress: false }
+permissions: { contents: write }
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 live.py
+      - run: |
+          git config user.name "Makarios board" && git config user.email "board@users.noreply.github.com"
+          git add live.json
+          git diff --cached --quiet || { git commit -qm "live $(date -u +%FT%TZ)" && git pull -q --rebase origin main && git push -q origin HEAD:main; }
