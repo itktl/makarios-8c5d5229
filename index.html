@@ -801,9 +801,14 @@ async function loadHold() {
 async function load() {
   loadHold();
   try {
-    const r = await fetch("data.json?t=" + Date.now(), { cache: "no-store" });
+    const r = await fetch("/pulse-b2dedc/data.json?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error(r.status);
-    data = await r.json();
+    const all = await r.json(), keep = ["makarios", "spy"], from = "2025-04-30";
+    const lines = keep.map((k) => all.lines.find((l) => l.key === k)).filter(Boolean)
+      .map((l) => ({ key: l.key, name: l.name, series: l.series.filter((p) => p[0] >= from) }));
+    if (lines.length !== keep.length) throw new Error("Pulse has no Makarios or SPY line");
+    data = { updatedAt: all.updatedAt, priceTime: all.priceTime, strategiesSyncedAt: all.strategiesSyncedAt, allStart: from,
+      holdingsOn: { makarios: (all.holdingsOn || {}).makarios }, overdue: (all.overdue || []).filter((t) => t.includes("Makarios")), lines };
     render();
   } catch (e) {
     document.getElementById("stateText").textContent = data ? "offline · showing last" : "could not load";
